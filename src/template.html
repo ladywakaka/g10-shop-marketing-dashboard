@@ -51,7 +51,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
     initiatives: raw.activations.map((r) => Object.assign({}, r, {start_status: r.progress})),
     kols: raw.kols.map((k) => Object.assign({}, k, {start_status: k.status})),
     decisions: raw.decisions,
-    milestones: [{date: '2026-12-03', label: 'Handover'}, {date: '2026-12-06', label: 'Trial run'}, {date: '2026-12-12', label: 'Grand opening'}, {date: '2027-02-06', label: 'CNY'}],
+    milestones: [{date: '2026-12-03', label: 'Shop handover'}, {date: '2026-12-06', label: 'Trial run'}, {date: '2026-12-12', label: 'Grand opening'}, {date: '2027-02-06', label: 'CNY'}],
   };
   const calcs = {}, draws = [];
   window.dash = {
@@ -189,7 +189,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
 <div class="g10" id="g10">
   <header class="g10-head" id="overview">
     <h1>G10 shop marketing dashboard</h1>
-    <div class="g10-sub">Pak Sha Road, Causeway Bay · Trial run 6 Dec · Grand opening 12 Dec 2026 · From the Retail Launch Deck R5</div>
+    <div class="g10-sub">Pak Sha Road, Causeway Bay · Shop handover 3 Dec · Trial run 6 Dec · Grand opening 12 Dec 2026 · From the Retail Launch Deck R5</div>
     <div class="g10-headrow">
       <div class="g10-count" id="g10-countdown"></div>
       <div class="g10-sync" id="g10-sync"><i></i><span>Connecting…</span></div>
@@ -554,7 +554,7 @@ dash.calc('status_counts', {
     const mx = (m) => x(+D(m.date) + DAY / 2);
     svg.append('g').selectAll('line').data(msIn).join('line').attr('x1', mx).attr('x2', mx).attr('y1', top - 6).attr('y2', H - bottom).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
     const labels = [];
-    msIn.filter((m) => S.view === 'fortnight' || m.label === 'Grand opening' || m.label === 'CNY').forEach((m) => labels.push({x: mx(m), t: svg.append('text').attr('x', mx(m) + 3).attr('y', 32).attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', 500).text(m.label)}));
+    msIn.filter((m) => S.view === 'fortnight' || m.label === 'Shop handover' || m.label === 'Grand opening' || m.label === 'CNY').forEach((m) => labels.push({x: mx(m), left: S.view === 'full' && m.label === 'Shop handover', t: svg.append('text').attr('x', mx(m) + 3).attr('y', 32).attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', 500).text(m.label)}));
     if (today >= dom[0] && today <= dom[1]) {
       const tx = x(+today + DAY / 2);
       svg.append('line').attr('x1', tx).attr('x2', tx).attr('y1', top - 10).attr('y2', H - bottom).attr('stroke', 'var(--color-fg)').attr('stroke-width', 2);
@@ -607,7 +607,7 @@ dash.calc('status_counts', {
     tl.each(function () { const bx = +this.getAttribute('x'), w = this.getComputedTextLength(); if (bx < end + 4 || bx + w > W) this.remove(); else end = bx + w; });
     lines.forEach((l) => { if (!l.t) return; const n = l.t.node(); let s = l.r.initiative; while (n.getComputedTextLength() > labelW - 6 && s.length > 4) { s = s.slice(0, -2); n.textContent = s + '…'; } });
     let mEnd = -Infinity;
-    labels.sort((a, b) => a.x - b.x).forEach((lb) => { const n = lb.t.node(), w = n.getComputedTextLength(); let bx = lb.x + 3; if (bx + w > W) { lb.t.attr('x', lb.x - 3).attr('text-anchor', 'end'); bx = lb.x - 3 - w; } if (bx < mEnd + 6) lb.t.remove(); else mEnd = bx + w; });
+    labels.sort((a, b) => a.x - b.x).forEach((lb) => { const n = lb.t.node(), w = n.getComputedTextLength(); let bx = lb.x + 3; if (lb.left) { lb.t.attr('x', lb.x - 3).attr('text-anchor', 'end'); bx = lb.x - 3 - w; } else if (bx + w > W) { lb.t.attr('x', lb.x - 3).attr('text-anchor', 'end'); bx = lb.x - 3 - w; } if (bx < mEnd + 6) lb.t.remove(); else mEnd = bx + w; });
   }
 
   // Names the team has crossed out (r.struck) show with a line through them wherever they appear
