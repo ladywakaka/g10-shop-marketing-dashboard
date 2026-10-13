@@ -684,25 +684,25 @@ dash.calc('status_counts', {
 </div>
 
 <style>
-/* File-folder look in two colours plus ink, sampled from the reference: page grey #e0e0d6,
-   cream #f7f5e8, green #c7dea5, charcoal ink #443f3d. Folders alternate cream and green. */
+/* File-folder look in black and white, mostly white: white page and cards, light grey folders,
+   two black folders for contrast, statuses on a black-to-grey scale. */
 :root{
-  --page:#e0e0d6; --cream:#f7f5e8; --green:#c7dea5; --paper:#fdfcf6; --ink:#443f3d;
-  --green-mid:#8fb45f; --green-deep:#4e6b2c; --ink-soft:rgba(68,63,61,.7);
-  --color-fg-muted:var(--ink-soft); --color-ok:var(--green-deep); --color-warn:var(--ink); --color-bad:var(--ink);
-  --cds-chart-categorical-1:var(--green-mid); --cds-chart-muted:#c9c6bb; --cds-chart-reference:var(--ink-soft);
-  --cds-chart-grid:rgba(68,63,61,.12); --cds-text-secondary:var(--ink-soft);
+  --page:#ffffff; --light:#f1f1f0; --black:#111111; --paper:#ffffff; --ink:#111111;
+  --grey-mid:#8c8c8c; --grey-dark:#4a4a4a; --ink-soft:rgba(17,17,17,.6);
+  --color-fg-muted:var(--ink-soft); --color-ok:var(--ink); --color-warn:var(--ink); --color-bad:var(--ink);
+  --cds-chart-categorical-1:var(--grey-mid); --cds-chart-muted:#d6d6d6; --cds-chart-reference:var(--ink-soft);
+  --cds-chart-grid:rgba(17,17,17,.1); --cds-text-secondary:var(--ink-soft);
   --font-anthropic-sans:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
   --font-anthropic-serif:"Newsreader","Times New Roman",Georgia,serif;
-  --color-fg:var(--ink); --color-bg:var(--paper); --color-border-line:rgba(68,63,61,.14);
+  --color-fg:var(--ink); --color-bg:var(--paper); --color-border-line:rgba(17,17,17,.14);
   --cds-surface-popover:var(--paper);
   color-scheme:light;
 }
 /* single deliberate look: the paper colours stay the same in dark mode */
 @media (prefers-color-scheme: dark){:root{
-  --color-fg:var(--ink); --color-fg-muted:var(--ink-soft); --color-bg:var(--paper); --color-panel:var(--paper); --color-border-line:rgba(68,63,61,.16);
-  --color-ok:var(--green-deep); --color-warn:var(--ink); --color-bad:var(--ink); --cds-chart-muted:#c9c6bb; --cds-chart-grid:rgba(68,63,61,.12);
-  --cds-chart-reference:var(--ink-soft); --cds-chart-categorical-1:var(--green-mid); --cds-surface-popover:var(--paper); --cds-border:rgba(68,63,61,.16);
+  --color-fg:var(--ink); --color-fg-muted:var(--ink-soft); --color-bg:var(--paper); --color-panel:var(--paper); --color-border-line:rgba(17,17,17,.16);
+  --color-ok:var(--ink); --color-warn:var(--ink); --color-bad:var(--ink); --cds-chart-muted:#d6d6d6; --cds-chart-grid:rgba(17,17,17,.1);
+  --cds-chart-reference:var(--ink-soft); --cds-chart-categorical-1:var(--grey-mid); --cds-surface-popover:var(--paper); --cds-border:rgba(17,17,17,.16);
   --cds-text-secondary:var(--ink-soft); --cds-shadow-popover:0 8px 24px #0000001f, 0 2px 6px #00000014; color-scheme:light;
 }}
 html,body{background:var(--page)}
@@ -718,11 +718,11 @@ html,body{background:var(--page)}
 .g10-count strong{font-family:var(--font-anthropic-serif);font-size:30px}
 .g10-take{text-align:center;color:var(--ink)}
 /* folders */
-.g10-card{--folder:var(--cream);--folder-ink:var(--ink);--tab-x:6%;
+.g10-card{--folder:var(--light);--folder-ink:var(--ink);--tab-x:6%;
   position:relative;background:var(--folder);border:0;border-radius:22px;margin-top:66px;
   padding:clamp(18px,3vw,32px);box-shadow:0 -1px 0 rgba(0,0,0,.05),0 18px 30px -18px rgba(40,30,10,.35);isolation:isolate}
 .g10-card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;opacity:.35;mix-blend-mode:multiply;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .3 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .14 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
 .g10-card h2{position:absolute;top:0;left:clamp(14px,var(--tab-x),calc(100% - 300px));transform:translateY(calc(-100% + 1px));
   background:var(--folder);color:var(--folder-ink);border-radius:18px 18px 0 0;padding:16px 30px 10px;max-width:min(320px,70%);
   font:700 13px/1.15 var(--font-anthropic-sans);letter-spacing:.05em;text-transform:uppercase;text-align:center}
@@ -730,18 +730,18 @@ html,body{background:var(--page)}
 .g10-card h2::before{left:-18px;background:radial-gradient(circle at 0 0,transparent 17.5px,var(--folder) 18px)}
 .g10-card h2::after{right:-18px;background:radial-gradient(circle at 100% 0,transparent 17.5px,var(--folder) 18px)}
 .g10-card .g10-note{color:color-mix(in srgb,var(--folder-ink) 68%,transparent);font-size:12.5px}
-#progress{--folder:var(--cream);--tab-x:5%}
-#green-lights{--folder:var(--green);--tab-x:36%}
-#kols{--folder:var(--cream);--tab-x:62%}
-#timeline{--folder:var(--green);--tab-x:18%}
-#activations{--folder:var(--cream);--tab-x:46%}
+#progress{--folder:var(--light);--tab-x:5%}
+#green-lights{--folder:var(--black);--folder-ink:#fff;--tab-x:36%}
+#kols{--folder:var(--light);--tab-x:62%}
+#timeline{--folder:var(--black);--folder-ink:#fff;--tab-x:18%}
+#activations{--folder:var(--light);--tab-x:46%}
 /* status colours kept inside the palette: greens for progress, ink for what needs attention */
-.g10{--s-ns:#c9c6bb;--s-st:var(--green-mid);--s-pe:var(--ink);--s-fi:var(--green-deep);--s-dr:#dedbd0}
-.c-tbc{--c:#c9c6bb}.c-wait{--c:var(--ink)}.c-yes{--c:var(--green-deep)}.c-no{--c:#9c978d}
+.g10{--s-ns:#d6d6d6;--s-st:var(--grey-mid);--s-pe:var(--grey-dark);--s-fi:var(--black);--s-dr:#ececec}
+.c-tbc{--c:#d6d6d6}.c-wait{--c:var(--grey-dark)}.c-yes{--c:var(--black)}.c-no{--c:#a8a8a8}
 .due.late{text-decoration:underline;text-underline-offset:3px}
 .g10-gl.is-late{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 /* cream folders: give inner paper a hairline so it separates from the folder */
-#progress .g10-tile,#kols .k-row .pbtn:not([aria-pressed="true"]),#activations .g10-detail{box-shadow:inset 0 0 0 1px rgba(68,63,61,.18)}
+#progress .g10-tile,#kols .k-row .pbtn:not([aria-pressed="true"]),#activations .g10-detail,#activations .pbtn:not([aria-pressed="true"]){box-shadow:inset 0 0 0 1px rgba(17,17,17,.14)}
 #progress .g10-tile[aria-pressed="true"]{box-shadow:inset 0 0 0 1px var(--ink)}
 /* paper surfaces inside folders */
 .g10-tile,.g10-gl,.seg,.g10-tools input,.pbtn:not([aria-pressed="true"]){background:var(--paper)}
@@ -750,24 +750,27 @@ html,body{background:var(--page)}
 .g10-tile .num{font-size:34px}
 .g10-gl .item{font-family:var(--font-anthropic-serif);font-weight:400;font-size:22px;line-height:1.1}
 .g10-stack{background:var(--paper);border-color:transparent;height:14px}
-#timeline .g10-legend,#timeline .g10-off{color:var(--ink)}
-#timeline .g10-legend .dot{box-shadow:0 0 0 1px rgba(68,63,61,.35)}
+#timeline .g10-legend,#timeline .g10-off{color:rgba(255,255,255,.85)}
+#timeline .g10-legend .dot{box-shadow:0 0 0 1.5px #fff}
+#timeline .g10-legend .td{border-left-color:#fff}
+#timeline .g10-legend .ms{border-left-color:rgba(255,255,255,.7)}
+#timeline .seg{background:#fff}
 #timeline .g10-gantt{background:var(--paper);border-radius:14px;padding:14px 12px 8px}
 #timeline .seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
-.g10-row,.k-row{border-bottom-color:rgba(68,63,61,.16)}
-.g10-phase h3{color:var(--ink);border-bottom-color:rgba(68,63,61,.3);font-weight:700}
-.g10-row.sel{background:rgba(255,255,255,.5)}
+.g10-row,.k-row{border-bottom-color:rgba(17,17,17,.16)}
+.g10-phase h3{color:var(--ink);border-bottom-color:rgba(17,17,17,.3);font-weight:700}
+.g10-row.sel{background:#fff}
 .g10-detail{background:var(--paper);border-color:transparent}
-.g10-row .open,.g10-row .who,.k-row .sub,.g10-row .when{color:rgba(68,63,61,.72)}
-.flag{border-color:rgba(68,63,61,.3);color:rgba(68,63,61,.75);background:rgba(255,250,242,.5)}
+.g10-row .open,.g10-row .who,.k-row .sub,.g10-row .when{color:rgba(17,17,17,.72)}
+.flag{border-color:rgba(17,17,17,.3);color:rgba(17,17,17,.75);background:rgba(255,250,242,.5)}
 .flag.dec{border-color:var(--ink);color:var(--ink);font-weight:600}
-.g10-edit{color:rgba(68,63,61,.7)}
+.g10-edit{color:rgba(17,17,17,.7)}
 .xbtn .chev{border-color:var(--ink);color:var(--ink)}
 .xbtn[aria-expanded="true"] .chev{background:var(--ink);color:var(--paper)}
-.k-sum{color:rgba(68,63,61,.8)}
+.k-sum{color:rgba(17,17,17,.8)}
 .k-sum b{color:var(--ink)}
-.k-row .note b{color:rgba(68,63,61,.65)}
-.k-row.is-no .nm{color:rgba(68,63,61,.55)}
+.k-row .note b{color:rgba(17,17,17,.65)}
+.k-row.is-no .nm{color:rgba(17,17,17,.55)}
 .g10-sync{justify-content:center}
 @media (max-width:720px){.g10-card h2{left:30px;max-width:calc(100% - 50px);padding:14px 22px 9px}}
 </style>

@@ -21,7 +21,7 @@ No marketing data is stored in this repository. Only the encrypted page is publi
 
 ## Look and layout
 
-`src/template.html` uses the same page code as the Claude version of this dashboard (claude.ai artifact TH4RWZoeYRkGwYZssL1Mm4), restyled at the bottom of the file in a "file folder" look: warm grey page, folders alternating cream (#f7f5e8) and green (#c7dea5), charcoal ink (#443f3d), Newsreader and Archivo type. Status buttons open the item's row in Notion. When the Claude page's content or behaviour changes, copy the change here; keep the folder styles block at the end.
+`src/template.html` uses the same page code as the Claude version of this dashboard (claude.ai artifact TH4RWZoeYRkGwYZssL1Mm4), restyled at the bottom of the file in a "file folder" look: black and white, mostly white: white page and cards, light grey folders (#f1f1f0), two black folders (Green Lights, Timeline), statuses on a black-to-grey scale, Newsreader and Archivo type. Status buttons open the item's row in Notion. When the Claude page's content or behaviour changes, copy the change here; keep the folder styles block at the end.
 
 ## How it updates
 
