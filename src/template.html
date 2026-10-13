@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>G10 Shop Marketing Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <style>
 /* The Claude dashboard's design tokens (comfortable density), resolved to fixed values so this page matches it. */
@@ -185,7 +188,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
 
 <div class="g10" id="g10">
   <header class="g10-head" id="overview">
-    <h1>G10 Shop Marketing Dashboard</h1>
+    <h1>G10 shop marketing dashboard</h1>
     <div class="g10-sub">Pak Sha Road, Causeway Bay · Trial run 6 Dec · Grand opening 12 Dec 2026 · From the Retail Launch Deck R5</div>
     <div class="g10-headrow">
       <div class="g10-count" id="g10-countdown"></div>
@@ -679,5 +682,84 @@ dash.calc('status_counts', {
 </script>
 
 </div>
+
+<style>
+/* "The full offering" look: sky-blue page, each section a paper file folder with a staggered tab.
+   Palette sampled from the reference: sky #d9ebf4, chartreuse #c0b44e, blush #ebc6cd, mauve #c19f9e, red #961d23. */
+:root{
+  --sky:#d9ebf4; --chartreuse:#c4b84a; --blush:#ebc6cd; --mauve:#c9a4a9; --cardinal:#961d23; --paper:#fffaf2; --ink:#141412;
+  --font-anthropic-sans:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --font-anthropic-serif:"Newsreader","Times New Roman",Georgia,serif;
+  --color-fg:var(--ink); --color-bg:var(--paper); --color-border-line:rgba(20,20,18,.14);
+  --cds-surface-popover:var(--paper);
+  color-scheme:light;
+}
+/* single deliberate look: the paper colours stay the same in dark mode */
+@media (prefers-color-scheme: dark){:root{
+  --color-fg:var(--ink); --color-fg-muted:#6f6b62; --color-bg:var(--paper); --color-panel:var(--paper); --color-border-line:rgba(20,20,18,.14);
+  --color-ok:#2f6b1f; --color-warn:#7a4a00; --color-bad:#961d23; --cds-chart-muted:#b9b5aa; --cds-chart-grid:rgba(20,20,18,.1);
+  --cds-chart-reference:#6f6b62; --cds-chart-categorical-1:#2a6fc0; --cds-surface-popover:var(--paper); --cds-border:rgba(20,20,18,.14);
+  --cds-text-secondary:#4a4843; --cds-shadow-popover:0 8px 24px #0000001f, 0 2px 6px #00000014; color-scheme:light;
+}}
+html,body{background:var(--sky)}
+#dash-root{padding:clamp(20px,5vw,56px) clamp(16px,4vw,48px) 72px}
+.g10{gap:0;max-width:1240px;margin:0 auto}
+.g10 .g10-pbtn-reset{}
+/* header */
+.g10-head{text-align:center;justify-items:center;padding:clamp(24px,6vw,72px) 0 clamp(40px,7vw,88px);gap:10px}
+[hidden]{display:none!important}
+.g10 h1{font-family:var(--font-anthropic-serif);font-weight:400;letter-spacing:-.025em;font-size:clamp(44px,8vw,96px);line-height:.95;letter-spacing:-.01em;color:var(--ink)}
+.g10-sub{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);font-weight:500;max-width:70ch}
+.g10-headrow{justify-content:center}
+.g10-count strong{font-family:var(--font-anthropic-serif);font-size:30px}
+.g10-take{text-align:center;color:#2b2b28}
+/* folders */
+.g10-card{--folder:var(--chartreuse);--folder-ink:var(--ink);--tab-x:6%;
+  position:relative;background:var(--folder);border:0;border-radius:22px;margin-top:66px;
+  padding:clamp(18px,3vw,32px);box-shadow:0 -1px 0 rgba(0,0,0,.05),0 18px 30px -18px rgba(40,30,10,.35);isolation:isolate}
+.g10-card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;opacity:.35;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .3 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+.g10-card h2{position:absolute;top:0;left:clamp(14px,var(--tab-x),calc(100% - 300px));transform:translateY(calc(-100% + 1px));
+  background:var(--folder);color:var(--folder-ink);border-radius:18px 18px 0 0;padding:16px 30px 10px;max-width:min(320px,70%);
+  font:700 13px/1.15 var(--font-anthropic-sans);letter-spacing:.05em;text-transform:uppercase;text-align:center}
+.g10-card h2::before,.g10-card h2::after{content:"";position:absolute;bottom:0;width:18px;height:18px}
+.g10-card h2::before{left:-18px;background:radial-gradient(circle at 0 0,transparent 17.5px,var(--folder) 18px)}
+.g10-card h2::after{right:-18px;background:radial-gradient(circle at 100% 0,transparent 17.5px,var(--folder) 18px)}
+.g10-card .g10-note{color:color-mix(in srgb,var(--folder-ink) 68%,transparent);font-size:12.5px}
+#progress{--folder:var(--chartreuse);--tab-x:5%}
+#green-lights{--folder:var(--blush);--tab-x:36%}
+#kols{--folder:var(--mauve);--tab-x:62%}
+#timeline{--folder:var(--cardinal);--folder-ink:#fff;--tab-x:18%}
+#activations{--folder:var(--chartreuse);--tab-x:46%}
+/* paper surfaces inside folders */
+.g10-tile,.g10-gl,.seg,.g10-tools input,.pbtn:not([aria-pressed="true"]){background:var(--paper)}
+.g10-tile,.g10-gl{border-color:transparent;box-shadow:0 1px 0 rgba(0,0,0,.06)}
+.g10-tile[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.g10-tile .num{font-size:34px}
+.g10-gl .item{font-family:var(--font-anthropic-serif);font-weight:400;font-size:22px;line-height:1.1}
+.g10-stack{background:var(--paper);border-color:transparent;height:14px}
+#timeline .g10-legend,#timeline .g10-off{color:rgba(255,255,255,.85)}
+#timeline .g10-legend .td{border-left-color:#fff}
+#timeline .g10-legend .dot{box-shadow:0 0 0 1.5px #fff}
+#timeline .g10-legend .ms{border-left-color:rgba(255,255,255,.7)}
+#timeline .g10-gantt{background:var(--paper);border-radius:14px;padding:14px 12px 8px}
+#timeline .seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.g10-row,.k-row{border-bottom-color:rgba(20,20,18,.16)}
+.g10-phase h3{color:var(--ink);border-bottom-color:rgba(20,20,18,.3);font-weight:700}
+.g10-row.sel{background:rgba(255,250,242,.55)}
+.g10-detail{background:var(--paper);border-color:transparent}
+.g10-row .open,.g10-row .who,.k-row .sub,.g10-row .when{color:rgba(20,20,18,.72)}
+.flag{border-color:rgba(20,20,18,.3);color:rgba(20,20,18,.75);background:rgba(255,250,242,.5)}
+.flag.dec{border-color:var(--cardinal);color:var(--cardinal)}
+.g10-edit{color:rgba(20,20,18,.7)}
+.xbtn .chev{border-color:var(--ink);color:var(--ink)}
+.xbtn[aria-expanded="true"] .chev{background:var(--ink);color:var(--paper)}
+.k-sum{color:rgba(20,20,18,.8)}
+.k-sum b{color:var(--ink)}
+.k-row .note b{color:rgba(20,20,18,.65)}
+.k-row.is-no .nm{color:rgba(20,20,18,.55)}
+.g10-sync{justify-content:center}
+@media (max-width:720px){.g10-card h2{left:30px;max-width:calc(100% - 50px);padding:14px 22px 9px}}
+</style>
 </body>
 </html>

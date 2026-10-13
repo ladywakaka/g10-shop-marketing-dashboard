@@ -21,7 +21,7 @@ No marketing data is stored in this repository. Only the encrypted page is publi
 
 ## Look and layout
 
-`src/template.html` is the same page as the Claude version of this dashboard (claude.ai artifact TH4RWZoeYRkGwYZssL1Mm4), with its design tokens copied in as fixed values, read-only status buttons and an **Edit in Notion** link on each item. When that page changes, copy the change here too so the two stay identical.
+`src/template.html` uses the same page code as the Claude version of this dashboard (claude.ai artifact TH4RWZoeYRkGwYZssL1Mm4), restyled at the bottom of the file in a "file folder" look: sky-blue page, each section a coloured folder with a tab (chartreuse, blush, mauve, red), Newsreader and Archivo type. Status buttons open the item's row in Notion. When the Claude page's content or behaviour changes, copy the change here; keep the folder styles block at the end.
 
 ## How it updates
 
