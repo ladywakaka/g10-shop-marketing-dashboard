@@ -42,6 +42,8 @@ jobs:
         env:
           DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
         run: |
+          # Drop any space or line break pasted around the secret, so the password works as typed
+          DASHBOARD_PASSWORD="$(printf '%s' "$DASHBOARD_PASSWORD" | tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
           if [ -z "$DASHBOARD_PASSWORD" ]; then echo "DASHBOARD_PASSWORD secret is not set"; exit 1; fi
           npx --yes staticrypt@3 build/index.html \
             -p "$DASHBOARD_PASSWORD" \

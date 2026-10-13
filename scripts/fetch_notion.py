@@ -133,7 +133,7 @@ def struck(value):
 
 
 def main():
-    token = os.environ.get("NOTION_TOKEN")
+    token = (os.environ.get("NOTION_TOKEN") or "").strip()
     if not token:
         sys.exit("NOTION_TOKEN is not set. Add it under the repo's Settings > Secrets and variables > Actions.")
 
