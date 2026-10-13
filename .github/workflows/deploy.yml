@@ -51,8 +51,8 @@ jobs:
             --short \
             --salt "$(echo -n g10-shop-marketing-dashboard | md5sum | cut -c1-32)" \
             --remember 30 \
-            --template-title "G10 Shop Marketing Dashboard" \
-            --template-instructions "Enter the team password to view the G10 shop marketing dashboard." \
+            --template-title "G10 Shop Marketing Update" \
+            --template-instructions "Enter the team password to view the G10 Shop Marketing Update." \
             --template-button "Open dashboard" \
             --template-color-primary "#a87a2e" \
             --template-color-secondary "#f6f4f0"
