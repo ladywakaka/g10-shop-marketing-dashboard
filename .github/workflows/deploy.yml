@@ -1,0 +1,74 @@
+name: Build and publish dashboard
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 18 * * *" # every day at 02:00 Hong Kong time
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Pull activations, KOLs and decisions from Notion
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: python scripts/fetch_notion.py
+
+      - name: Build page
+        run: python scripts/build.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Password-protect page
+        env:
+          DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
+        run: |
+          if [ -z "$DASHBOARD_PASSWORD" ]; then echo "DASHBOARD_PASSWORD secret is not set"; exit 1; fi
+          npx --yes staticrypt@3 build/index.html \
+            -p "$DASHBOARD_PASSWORD" \
+            -d dist \
+            --short \
+            --salt "$(echo -n g10-shop-marketing-dashboard | md5sum | cut -c1-32)" \
+            --remember 30 \
+            --template-title "G10 Shop Marketing Dashboard" \
+            --template-instructions "Enter the team password to view the G10 shop marketing dashboard." \
+            --template-button "Open dashboard" \
+            --template-color-primary "#a87a2e" \
+            --template-color-secondary "#f6f4f0"
+          printf 'User-agent: *\nDisallow: /\n' > dist/robots.txt
+          rm -rf build data
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

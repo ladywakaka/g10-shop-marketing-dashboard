@@ -1,0 +1,34 @@
+# G10 Shop Marketing Dashboard
+
+A password-protected dashboard of the marketing and PR plan for the Grade10 shop on Pak Sha Road, Causeway Bay (trial run 6 Dec, grand opening 12 Dec 2026): activation progress, Green Light decisions, KOL invitations and the campaign timeline.
+
+Live page: https://ladywakaka.github.io/g10-shop-marketing-dashboard/
+
+## Where the data lives
+
+Notion page **Grade10 › G10 Shop Launch Tracker**, with three databases:
+
+| Database | What the team changes |
+|---|---|
+| **Activations** | **Status** (Not started, Started, Pending, Finished, Dropped), **Open Items**, dates. The plan from the deck is in each row's page and shows as the ▶ details. |
+| **KOL Invitations** | **Reply Status** (TBC, Waiting for reply, Accepted, Turned down) and **Note**. |
+| **Green Light Decisions** | **Status** (Open, Confirmed) and **Needed By**. |
+
+- To cross out a name on an activation, write `Name: reason` in its **Crossed Out** field (one per line).
+- Do not change the **Key** fields; they link rows to the page.
+
+No marketing data is stored in this repository. Only the encrypted page is published.
+
+## How it updates
+
+1. A GitHub Action (`.github/workflows/deploy.yml`) runs every day at 02:00 HKT, on every push to `main`, and whenever you click **Run workflow** (Actions tab).
+2. `scripts/fetch_notion.py` pulls the three databases from Notion.
+3. `scripts/build.py` puts the data into `src/template.html`.
+4. [StatiCrypt](https://github.com/robinmoisson/staticrypt) encrypts the page with the team password, and the encrypted page is published to GitHub Pages.
+
+## Secrets (Settings > Secrets and variables > Actions)
+
+| Name | What it is |
+|---|---|
+| `NOTION_TOKEN` | Internal integration secret from notion.so/my-integrations. The G10 Shop Launch Tracker page must be connected to that integration (page menu > Connections). |
+| `DASHBOARD_PASSWORD` | The password the team types to open the dashboard. Change it here, then run the workflow again. |
