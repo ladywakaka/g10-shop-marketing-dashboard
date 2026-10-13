@@ -540,8 +540,8 @@ dash.calc('status_counts', {
       .text((d, i) => S.view === 'full' ? (d.getUTCDate() <= 7 || i === 0 ? d3.utcFormat('%b %-d')(d) : d3.utcFormat('%-d')(d)) : (narrow ? d3.utcFormat('%-d')(d) : d3.utcFormat('%a %-d')(d)));
     lines.forEach((l) => {
       if (l.head) {
-        svg.append('rect').attr('x', 0).attr('y', l.y).attr('width', W).attr('height', headH - 4).attr('rx', 4).attr('fill', 'var(--color-bg)');
-        svg.append('text').attr('x', 6).attr('y', l.y + headH / 2 + 1).attr('dominant-baseline', 'middle').attr('fill', 'var(--color-fg-muted)')
+        svg.append('rect').attr('class', 'phase-band').attr('x', 0).attr('y', l.y).attr('width', W).attr('height', headH - 4).attr('rx', 4).attr('fill', 'var(--color-bg)');
+        svg.append('text').attr('class', 'phase-label').attr('x', 6).attr('y', l.y + headH / 2 + 1).attr('dominant-baseline', 'middle').attr('fill', 'var(--color-fg-muted)')
           .style('font-size', 'var(--cds-font-size-caption)').style('letter-spacing', '.06em').text(l.head.toUpperCase());
       } else {
         l.t = svg.append('text').attr('x', 6).attr('y', l.y + rowH / 2).attr('dominant-baseline', 'middle')
@@ -744,6 +744,9 @@ html,body{background:var(--page)}
 .pbtn.c-st[aria-pressed="true"]{color:var(--accent);border-color:var(--accent)}
 .pbtn.c-st[aria-pressed="true"] .dot{background:var(--accent)}
 .g10-gantt .mark.c-st rect,.g10-gantt .mark.c-st path{stroke:var(--accent)}
+/* timeline phase headers: bold green on a pale green band */
+.g10-gantt .phase-band{fill:var(--accent-soft)}
+.g10-gantt .phase-label{fill:var(--accent);font-weight:700;letter-spacing:.12em}
 .g10-stack span.c-st{box-shadow:inset 0 0 0 1px var(--accent)}
 .g10-gl:has(.pbtn.c-fi[aria-pressed="true"]){background:var(--accent-soft)}
 .c-tbc{--c:#d6d6d6}.c-wait{--c:var(--grey-dark)}.c-yes{--c:var(--accent)}.c-no{--c:#a8a8a8}
