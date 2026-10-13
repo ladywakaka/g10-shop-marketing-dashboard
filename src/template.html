@@ -202,7 +202,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
     <div class="g10-cardhead">
       <div>
         <h2>Progress</h2>
-        <div class="g10-note">Statuses come from Notion. To change one, use “Edit in Notion” on that activation. Click a tile to filter.</div>
+        <div class="g10-note">Statuses come from Notion. Click a status button to open that activation in Notion and change it. Click a tile to filter.</div>
       </div>
     </div>
     <div class="g10-stack" id="g10-stack" aria-hidden="true"></div>
@@ -314,7 +314,7 @@ dash.calc('status_counts', {
     try { db = c && c.use ? await c.use('db') : null; } catch (e) { db = null; }
     try { user = c && c.use ? await c.use('user') : null; } catch (e) { user = null; }
     S.db = db; S.user = user;
-    if (!db) { S.canWrite = false; setSync('ro', 'Read-only copy · statuses come from Notion · refreshed ' + (window.G10_UPDATED || '')); redraw(); return; }
+    if (!db) { S.canWrite = false; setSync('ro', 'Statuses come from Notion · click a status to open it there · refreshed ' + (window.G10_UPDATED || '')); redraw(); return; }
     if (user) {
       try { S.uid = await user.id(); } catch (e) { S.uid = null; }
       try { const can = await user.can('data.write'); S.canWrite = can; } catch (e) { S.canWrite = null; }
@@ -325,8 +325,21 @@ dash.calc('status_counts', {
       redraw();
     }, () => setSync('', 'Lost connection to saved statuses. Reload the page.'));
   }
+  // On the GitHub copy a status click opens that item's row in Notion, where the change is made
+  const NOTION_MODE = !!window.G10_UPDATED;
+  function notionUrl(key) {
+    if (!last) return null;
+    const id = key.slice(4), kind = key.slice(0, 3);
+    const rows = kind === 'act' ? last.ini : kind === 'dec' ? (last.dec || []) : (last.kols || []);
+    const r = rows.find((x) => x.id === id);
+    return r && r.url;
+  }
   async function save(key, fields) {
-    if (!S.db) return;
+    if (!S.db) {
+      const u = NOTION_MODE && notionUrl(key);
+      if (u) { window.open(u, '_blank', 'noopener'); toast('Opening this row in Notion. Change the status there.'); }
+      return;
+    }
     if (S.inflight.has(key)) { S.queued.set(key, fields); return; }
     S.inflight.add(key);
     try {
@@ -369,9 +382,9 @@ dash.calc('status_counts', {
       const b = el('button', 'pbtn ' + c); b.type = 'button';
       b.append(el('i', 'dot'), document.createTextNode(k));
       b.setAttribute('aria-pressed', String(current === k));
-      b.disabled = S.canWrite === false || !S.db;
-      if (b.disabled) b.title = 'Change this in Notion';
-      b.addEventListener('click', () => { if (current !== k) onPick(k); });
+      b.disabled = !NOTION_MODE && (S.canWrite === false || !S.db);
+      if (NOTION_MODE) b.title = 'Open in Notion to set “' + k + '”';
+      b.addEventListener('click', () => { if (NOTION_MODE || current !== k) onPick(k); });
       g.append(b);
     });
     return g;
