@@ -19,6 +19,10 @@ Notion page **Grade10 › G10 Shop Launch Tracker**, with three databases:
 
 No marketing data is stored in this repository. Only the encrypted page is published.
 
+## Look and layout
+
+`src/template.html` is the same page as the Claude version of this dashboard (claude.ai artifact TH4RWZoeYRkGwYZssL1Mm4), with its design tokens copied in as fixed values, read-only status buttons and an **Edit in Notion** link on each item. When that page changes, copy the change here too so the two stay identical.
+
 ## How it updates
 
 1. A GitHub Action (`.github/workflows/deploy.yml`) runs every day at 02:00 HKT, on every push to `main`, and whenever you click **Run workflow** (Actions tab).

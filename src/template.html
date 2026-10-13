@@ -5,400 +5,611 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>G10 Shop Marketing Dashboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <style>
-/* One 1180px column: header + progress, Green Lights, KOLs, timeline, then activations grouped by phase. Grade10 black and gold. */
+/* The Claude dashboard's design tokens (comfortable density), resolved to fixed values so this page matches it. */
 :root{
-  --bg:#ffffff; --panel:#f6f4f0; --ink:#1a1a1a; --muted:#6b675f; --line:#e4ded2; --gold:#a87a2e;
-  --s-ns:#9a958c; --s-st:#2f6fb0; --s-pe:#c0492f; --s-fi:#2f7d4f; --s-dr:#c9c3b8;
-  --ok:#2f7d4f; --warn:#b26a00; --bad:#c0492f;
-  --serif: Georgia, "Times New Roman", serif;
-  --sans: "Source Sans 3", "Segoe UI", Calibri, system-ui, sans-serif;
-  --r: 10px; color-scheme: light;
+  --font-anthropic-sans:"Anthropic Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-anthropic-serif:"Anthropic Serif",ui-serif,Georgia,"Times New Roman",serif;
+  --color-fg:#0b0b0b; --color-fg-muted:#898781; --color-bg:#f9f9f7; --color-panel:#ffffff;
+  --color-border-line:rgba(11,11,11,.1); --color-ok:#006300; --color-warn:#734500; --color-bad:#8e2626;
+  --cds-chart-muted:#c3c2b7; --cds-chart-grid:rgba(11,11,11,.1); --cds-chart-reference:#898781; --cds-chart-categorical-1:#2a78d6;
+  --cds-surface-popover:#ffffff; --cds-border:rgba(11,11,11,.1); --cds-text-secondary:#52514e;
+  --cds-shadow-popover:0 8px 24px #0000001f, 0 2px 6px #00000014;
+  --cds-radius:.5rem; --cds-font-weight-medium:500; --cds-dur-slow:.45s;
+  --cds-gap-xs:.5rem; --cds-gap-sm:.75rem; --cds-gap-md:1rem; --cds-gap-lg:1.75rem; --cds-gap-xl:2.5rem;
+  --cds-pad-xs:.375rem; --cds-pad-sm:.5rem; --cds-pad-md:.75rem; --cds-pad-lg:1rem; --cds-pad-xl:1.5rem;
+  --cds-font-size-caption:.75rem; --cds-font-size-body:.875rem; --cds-font-size-heading:.9375rem; --cds-font-size-title:1.375rem;
+  color-scheme:light;
 }
-@media (prefers-color-scheme: dark){ :root{
-  --bg:#121110; --panel:#1c1a17; --ink:#ede9e1; --muted:#a39e94; --line:#34302a; --gold:#d4a24e;
-  --s-ns:#7d786f; --s-st:#5b9be0; --s-pe:#e8735a; --s-fi:#5fbf86; --s-dr:#4f4b45;
-  --ok:#5fbf86; --warn:#e0a03a; --bad:#e8735a; color-scheme: dark } }
-*{box-sizing:border-box}
-body{margin:0;overflow-wrap:anywhere;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45}
-.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 64px;display:grid;gap:36px}
-h1,h2{font-family:var(--serif);font-weight:700;margin:0;text-wrap:balance}
-h1{font-size:clamp(28px,4vw,38px);line-height:1.1}
-h2{font-size:22px}
-a{color:inherit}
-.eyebrow{color:var(--gold);font-weight:700;font-size:15px}
-.muted{color:var(--muted)}
-.small{font-size:13px}
-.head{display:grid;gap:6px}
-.headrow{display:flex;flex-wrap:wrap;gap:8px 24px;align-items:baseline;justify-content:space-between}
-.count{font-size:14px;color:var(--muted)}
-.count b{font-family:var(--serif);font-size:26px;color:var(--ink);margin-right:6px;font-variant-numeric:tabular-nums}
-.sec{display:grid;gap:14px;min-width:0}
-.sechead{display:flex;flex-wrap:wrap;gap:10px 20px;justify-content:space-between;align-items:end}
-.sechead p{margin:4px 0 0;max-width:70ch}
-.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none;background:var(--c)}
-.c-ns{--c:var(--s-ns)}.c-st{--c:var(--s-st)}.c-pe{--c:var(--s-pe)}.c-fi{--c:var(--s-fi)}.c-dr{--c:var(--s-dr)}.c-all{--c:var(--ink)}
-.c-tbc{--c:var(--s-ns)}.c-wait{--c:var(--warn)}.c-yes{--c:var(--ok)}.c-no{--c:var(--bad)}
-.stack{display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--panel);border:1px solid var(--line)}
-.stack span{display:block;height:100%;background:var(--c)}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;background:var(--bg);color:var(--ink)}
-.chip b{font-variant-numeric:tabular-nums}
-.chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
-button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap;background:var(--c);color:#fff}
-.pill.c-ns,.pill.c-dr,.pill.c-tbc{color:var(--ink);background:var(--panel);border:1px solid var(--c)}
-.edit{font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap}
-.edit:hover{color:var(--gold);text-decoration:underline}
-.gls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:12px}
-.gl{border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:8px;align-content:start;min-width:0}
-.gl.late{border-color:var(--bad)}
-.gl.done{background:var(--panel)}
-.gl .top{display:flex;justify-content:space-between;gap:8px;align-items:center}
-.gl .id{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.06em}
-.gl .item{font-family:var(--serif);font-weight:700;font-size:17px;line-height:1.25}
-.gl dl{margin:0;display:grid;gap:4px;font-size:13px}
-.gl dt{color:var(--muted);font-size:12px}
-.gl dd{margin:0 0 4px}
-.gl .foot{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.due{font-size:12px;font-weight:700}
-.due.late{color:var(--bad)}.due.soon{color:var(--warn)}.due.later{color:var(--muted)}.due.ok{color:var(--ok)}
-.ksum{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted)}
-.ksum span{display:inline-flex;align-items:center;gap:6px}
-.ksum b{color:var(--ink)}
-.krow{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) auto;gap:6px 18px;align-items:center;padding:10px 6px;border-bottom:1px solid var(--line)}
-.krow .nm{font-weight:600}
-.krow .sub{font-size:13px;color:var(--muted)}
-.krow .note{grid-column:1 / -1;font-size:13px}
-.krow .note b{color:var(--muted);font-weight:600;margin-right:6px}
-.krow.is-no .nm{text-decoration:line-through;color:var(--muted)}
-.krow .right{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
-.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.seg button{font:inherit;border:0;background:var(--bg);cursor:pointer;padding:6px 11px;font-size:13px;color:var(--muted)}
-.seg button+button{border-left:1px solid var(--line)}
-.seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);font-weight:600}
-.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
-.legend span{display:inline-flex;align-items:center;gap:6px}
-.legend .ms{width:0;height:12px;border-left:1px dashed var(--muted)}
-.legend .td{width:0;height:12px;border-left:2px solid var(--ink)}
-.gantt{position:relative;min-height:200px;overflow:hidden}
-.gantt svg{display:block;width:100%;height:auto}
-.gantt text{font-family:var(--sans)}
-.gantt .bar{cursor:pointer}
-.gantt .bar:focus-visible{outline:none}
-.gantt .bar:focus-visible rect,.gantt .bar:focus-visible path{stroke:var(--ink);stroke-width:2}
-.tip{position:absolute;pointer-events:none;z-index:3;background:var(--bg);border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.14);padding:8px 10px;font-size:13px;max-width:280px;display:grid;gap:3px}
-.off{font-size:13px;color:var(--muted)}
-.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.tools input{font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:260px;max-width:100%}
-.clear{font:inherit;border:0;background:none;cursor:pointer;font-size:13px;color:var(--muted);text-decoration:underline}
-.phase h3{margin:0;padding:10px 0 8px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--line)}
-.row{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,.6fr) auto;gap:6px 18px;align-items:center;padding:12px 8px;border-bottom:1px solid var(--line);border-radius:6px}
-.row.sel{background:var(--panel)}
-.row .nm{font-weight:600}
-.row.is-dr .nm,.row.is-dr .xbtn .t{text-decoration:line-through;color:var(--muted)}
-.row .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px}
-.flag{font-size:12px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
-.flag.dec{border-color:var(--bad);color:var(--bad)}
-.row .when{font-size:14px;font-variant-numeric:tabular-nums}
-.row .right{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
-.row .open{grid-column:1 / -1;font-size:13px;color:var(--muted)}
-.xbtn{font:inherit;border:0;background:none;color:inherit;padding:0;text-align:left;cursor:pointer;display:inline-flex;align-items:flex-start;gap:8px;font-weight:600}
-.xbtn:hover .t{text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:3px}
-.xbtn .chev{flex:none;width:18px;height:18px;margin-top:2px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);display:inline-grid;place-items:center;font-size:10px;line-height:1}
-.xbtn[aria-expanded="true"] .chev{transform:rotate(90deg);background:var(--gold);color:var(--bg)}
-.detail{grid-column:1 / -1;background:var(--panel);border-radius:var(--r);padding:16px 18px;display:grid;gap:12px}
-.detail .obj b{color:var(--gold);font-size:12px;letter-spacing:.08em;margin-right:8px}
-.detail .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px 24px}
-.detail h4{margin:0 0 4px;font-size:13px}
-.detail ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
-.detail .src{font-size:12px;color:var(--muted)}
-.struck{text-decoration:line-through;text-decoration-thickness:2px;color:var(--muted)}
-.struck-note{font-size:13px;color:var(--bad)}
-.empty{padding:28px;border:1px dashed var(--line);border-radius:var(--r);color:var(--muted);text-align:center}
-.foot-note{font-size:13px;color:var(--muted)}
-@media (max-width:760px){.row,.krow{grid-template-columns:minmax(0,1fr)}.row .right,.krow .right{justify-content:flex-start}}
+@media (prefers-color-scheme: dark){:root{
+  --color-fg:#f0efec; --color-fg-muted:#898781; --color-bg:#0b0b0b; --color-panel:#1a1a19;
+  --color-border-line:rgba(255,255,255,.1); --color-ok:#0ca30c; --color-warn:#db9300; --color-bad:#ec7e7e;
+  --cds-chart-muted:#5f5e5a; --cds-chart-grid:rgba(255,255,255,.1); --cds-chart-reference:#97958d; --cds-chart-categorical-1:#3987e5;
+  --cds-surface-popover:#20201f; --cds-border:rgba(255,255,255,.1); --cds-text-secondary:#c3c2b7;
+  --cds-shadow-popover:0 8px 24px #00000052, 0 2px 6px #0003;
+  color-scheme:dark;
+}}
+html,body{margin:0;background:var(--color-bg)}
+body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
+#dash-root{color:var(--color-fg);font-size:14px;line-height:1.45;padding:clamp(var(--cds-pad-md),4%,var(--cds-pad-xl))}
+#dash-root *,#dash-root *::before,#dash-root *::after{box-sizing:border-box}
+#dash-root :is(b,strong){font-weight:700}
 </style>
 </head>
 <body>
-<main class="wrap">
-  <header class="head">
-    <div class="eyebrow">Grade10 · Pak Sha Road, Causeway Bay</div>
+<script id="launch-data" type="application/json">__LAUNCH_DATA__</script>
+<script>
+/* A small stand-in for the Claude dashboard's `dash` helper, fed from the Notion data baked into this page. */
+(function () {
+  const raw = JSON.parse(document.getElementById('launch-data').textContent);
+  window.G10_UPDATED = new Date(raw.updated).toLocaleString('en-GB', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Hong_Kong'}) + ' HKT';
+  const sets = {
+    initiatives: raw.activations.map((r) => Object.assign({}, r, {start_status: r.progress})),
+    kols: raw.kols.map((k) => Object.assign({}, k, {start_status: k.status})),
+    decisions: raw.decisions,
+    milestones: [{date: '2026-12-03', label: 'Handover'}, {date: '2026-12-06', label: 'Trial run'}, {date: '2026-12-12', label: 'Grand opening'}, {date: '2027-02-06', label: 'CNY'}],
+  };
+  const calcs = {}, draws = [];
+  window.dash = {
+    data(id) {
+      if (sets[id]) return {status: 'ok', data: sets[id], columns: [], meta: [], refreshing: false};
+      if (calcs[id]) return {status: 'ok', data: calcs[id].fn(...calcs[id].inputs.map((i) => sets[i])), columns: [], meta: [], refreshing: false};
+      return {status: 'missing', data: [], columns: [], meta: [], refreshing: false};
+    },
+    calc(id, def) { calcs[id] = def; },
+    loader() {},
+    // Like the Claude dashboard, draw after the page's own script has finished setting up
+    onData(fn) { draws.push(fn); setTimeout(fn, 0); },
+    colors: ['var(--cds-chart-categorical-1)'],
+    params: () => ({}), setParams() {}, resetParams() {}, setLink() {}, refresh() {},
+  };
+  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => draws.forEach((f) => f()), 150); });
+})();
+</script>
+<div id="dash-root">
+<style>
+.g10{--s-ns:var(--cds-chart-muted);--s-st:#2f6fb0;--s-pe:var(--color-bad);--s-fi:var(--color-ok);--s-dr:var(--color-border-line);
+  display:grid;gap:var(--cds-gap-xl);font-family:var(--font-anthropic-sans);color:var(--color-fg)}
+.g10 h1{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0;text-wrap:balance}
+.g10 h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:0}
+.g10-head{display:grid;gap:var(--cds-gap-xs)}
+.g10-sub,.g10-note{color:var(--color-fg-muted)}
+.g10-note{font-size:var(--cds-font-size-caption)}
+.g10-take{font-size:var(--cds-font-size-body);max-width:72ch;margin:0}
+.g10-take b{font-weight:var(--cds-font-weight-medium)}
+.g10-headrow{display:flex;flex-wrap:wrap;gap:var(--cds-gap-sm) var(--cds-gap-lg);align-items:baseline}
+.g10-count{display:inline-flex;gap:var(--cds-gap-xs);align-items:baseline;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.g10-count strong{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-heading);color:var(--color-fg)}
+.g10-sync{display:inline-flex;align-items:center;gap:6px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.g10-sync i{width:.5rem;height:.5rem;border-radius:50%;background:var(--s-ns);display:inline-block}
+.g10-sync.live i{background:var(--color-ok)}
+.g10-sync.ro i{background:var(--color-warn)}
+.g10-card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);display:grid;gap:var(--cds-gap-md);min-width:0}
+.g10-cardhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:var(--cds-gap-sm)}
+.g10-stack{display:flex;height:12px;border-radius:999px;overflow:hidden;background:var(--color-bg);border:1px solid var(--color-border-line)}
+.g10-stack span{display:block;height:100%;background:var(--c)}
+.g10-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,8.5rem),1fr));gap:var(--cds-gap-sm)}
+.g10-tile{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:var(--cds-gap-xs);padding:var(--cds-pad-md);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);background:var(--color-bg)}
+.g10-tile:hover{border-color:var(--color-fg-muted)}
+.g10-tile[aria-pressed="true"]{border-color:var(--color-fg);box-shadow:inset 0 0 0 1px var(--color-fg)}
+.g10-tile .lab{display:flex;align-items:center;gap:var(--cds-gap-xs);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.g10-tile .num{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);font-variant-numeric:tabular-nums;line-height:1.1}
+.g10 :focus-visible{outline:2px solid var(--color-fg);outline-offset:2px}
+.dot{width:.55rem;height:.55rem;border-radius:50%;flex:none;display:inline-block;background:var(--c)}
+.c-ns{--c:var(--s-ns)}.c-st{--c:var(--s-st)}.c-pe{--c:var(--s-pe)}.c-fi{--c:var(--s-fi)}.c-dr{--c:var(--s-dr)}.c-all{--c:var(--color-fg)}
+.g10-gls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr));gap:var(--cds-gap-sm)}
+.g10-gl{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);display:grid;gap:var(--cds-gap-xs);align-content:start;min-width:0;background:var(--color-bg)}
+.g10-gl.is-late{border-color:var(--color-bad)}
+.g10-gl .top{display:flex;justify-content:space-between;gap:var(--cds-gap-sm);align-items:center;flex-wrap:wrap}
+.g10-gl .id{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.g10-gl .item{font-weight:var(--cds-font-weight-medium)}
+.g10-gl dl{margin:0;display:grid;gap:2px;font-size:var(--cds-font-size-caption)}
+.g10-gl dt{color:var(--color-fg-muted)}
+.g10-gl dd{margin:0 0 4px}
+.due{font-size:var(--cds-font-size-caption);font-weight:var(--cds-font-weight-medium)}
+.due.late{color:var(--color-bad)}.due.soon{color:var(--color-warn)}.due.later{color:var(--color-fg-muted)}.due.ok{color:var(--color-ok)}
+.pseg{display:flex;flex-wrap:wrap;gap:6px}
+.pbtn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--color-border-line);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);background:var(--color-bg);white-space:nowrap}
+.pbtn .dot{opacity:.6}
+.pbtn:hover:not(:disabled){border-color:var(--c);color:var(--color-fg)}
+.pbtn[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:#fff;font-weight:var(--cds-font-weight-medium)}
+.pbtn.c-ns[aria-pressed="true"],.pbtn.c-dr[aria-pressed="true"]{color:var(--color-fg)}
+.pbtn[aria-pressed="true"] .dot{background:currentColor;opacity:1}
+.pbtn:disabled{cursor:not-allowed;opacity:.55}
+.pbtn[aria-pressed="true"]:disabled{opacity:1}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--color-border-line);border-radius:var(--cds-radius);overflow:hidden;background:var(--color-bg)}
+.seg button{all:unset;cursor:pointer;padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.seg button+button{border-left:1px solid var(--color-border-line)}
+.seg button[aria-pressed="true"]{background:var(--color-panel);color:var(--color-fg);font-weight:var(--cds-font-weight-medium)}
+.g10-legend{display:flex;flex-wrap:wrap;gap:var(--cds-gap-xs) var(--cds-gap-md);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.g10-legend span{display:inline-flex;align-items:center;gap:.35em}
+.g10-legend .ms{width:0;height:.8rem;border-left:1px dashed var(--cds-chart-reference)}
+.g10-legend .td{width:0;height:.8rem;border-left:2px solid var(--color-fg)}
+.g10-gantt{position:relative;min-height:22rem}
+.g10-gantt svg{display:block;overflow:visible}
+.g10-gantt .mark{cursor:pointer}
+.g10-gantt .mark:focus-visible{outline:none}
+.g10-gantt .mark:focus-visible rect,.g10-gantt .mark:focus-visible path{stroke:var(--color-fg);stroke-width:2}
+.g10-tip{position:absolute;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:var(--cds-radius);box-shadow:var(--cds-shadow-popover);padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);max-width:18rem;display:grid;gap:2px;z-index:2}
+.g10-tip .when{color:var(--cds-text-secondary)}
+.g10-off{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.g10-tools{display:flex;flex-wrap:wrap;gap:var(--cds-gap-sm);align-items:center}
+.g10-tools input{font:inherit;font-size:var(--cds-font-size-body);padding:var(--cds-pad-xs) var(--cds-pad-sm);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);background:var(--color-bg);color:var(--color-fg);min-width:0;width:16rem;max-width:100%}
+.g10-clear{all:unset;cursor:pointer;font-size:var(--cds-font-size-caption);text-decoration:underline;color:var(--color-fg-muted)}
+.g10-phase h3{margin:0;padding:var(--cds-pad-sm) 0 var(--cds-pad-xs);font-size:var(--cds-font-size-caption);letter-spacing:.08em;text-transform:uppercase;color:var(--color-fg-muted);border-bottom:1px solid var(--color-border-line)}
+.g10-row{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,.6fr) auto;gap:6px var(--cds-gap-md);align-items:center;padding:var(--cds-pad-sm) 6px;border-bottom:1px solid var(--color-border-line);border-radius:6px}
+.g10-row.sel{background:var(--color-bg)}
+.g10-row .nm{font-weight:var(--cds-font-weight-medium)}
+.g10-row.is-dr .nm,.g10-row.is-dr .xbtn .t{text-decoration:line-through;color:var(--color-fg-muted)}
+.g10-row .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px}
+.flag{font-size:var(--cds-font-size-caption);padding:0 8px;border-radius:999px;border:1px solid var(--color-border-line);color:var(--color-fg-muted)}
+.flag.dec{border-color:var(--color-bad);color:var(--color-bad)}
+.g10-row .when{font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
+.g10-row .open{grid-column:1 / -1;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.g10-row .who{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin-top:3px}
+.xbtn{all:unset;cursor:pointer;display:inline-flex;align-items:flex-start;gap:8px;font-weight:var(--cds-font-weight-medium);border-radius:4px}
+.xbtn:hover .t{text-decoration:underline;text-underline-offset:3px}
+.xbtn .chev{flex:none;width:18px;height:18px;margin-top:1px;border-radius:50%;border:1px solid var(--color-fg-muted);color:var(--color-fg-muted);display:inline-grid;place-items:center;font-size:10px;line-height:1}
+.xbtn[aria-expanded="true"] .chev{transform:rotate(90deg);background:var(--color-fg);border-color:var(--color-fg);color:var(--color-bg)}
+.g10-detail{grid-column:1 / -1;background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md) var(--cds-pad-lg);display:grid;gap:var(--cds-gap-sm)}
+.g10-detail .obj b{font-size:var(--cds-font-size-caption);letter-spacing:.08em;margin-right:8px;color:var(--color-fg-muted)}
+.g10-detail .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr));gap:var(--cds-gap-sm) var(--cds-gap-lg)}
+.g10-detail h4{margin:0 0 4px;font-size:var(--cds-font-size-caption);font-weight:var(--cds-font-weight-medium)}
+.g10-detail ul{margin:0;padding-left:18px;display:grid;gap:3px;font-size:var(--cds-font-size-body)}
+.g10-detail .src{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.k-sum{display:flex;flex-wrap:wrap;gap:var(--cds-gap-xs) var(--cds-gap-md);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.k-sum span{display:inline-flex;align-items:center;gap:6px}
+.k-sum b{color:var(--color-fg);font-variant-numeric:tabular-nums}
+.k-row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) auto;gap:6px var(--cds-gap-md);align-items:center;padding:var(--cds-pad-sm) 6px;border-bottom:1px solid var(--color-border-line)}
+.k-row .nm{font-weight:var(--cds-font-weight-medium)}
+.k-row .sub{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.k-row .act{font-size:var(--cds-font-size-caption)}
+.k-row .note{grid-column:1 / -1;font-size:var(--cds-font-size-caption);color:var(--color-fg)}
+.k-row .note b{font-weight:var(--cds-font-weight-medium);color:var(--color-fg-muted);margin-right:6px}
+.k-row.is-no .nm{text-decoration:line-through;color:var(--color-fg-muted)}
+.c-tbc{--c:var(--cds-chart-muted)}.c-wait{--c:var(--color-warn)}.c-yes{--c:var(--color-ok)}.c-no{--c:var(--color-bad)}
+@media (max-width:720px){.k-row{grid-template-columns:minmax(0,1fr)}}
+.struck{text-decoration:line-through;text-decoration-thickness:2px;color:var(--color-fg-muted)}
+.struck-note{font-size:var(--cds-font-size-caption);color:var(--color-bad)}
+.g10-edit{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);text-decoration:none;white-space:nowrap;justify-self:start}
+.g10-edit:hover{color:var(--color-fg);text-decoration:underline}
+.g10-empty{padding:var(--cds-pad-lg);color:var(--color-fg-muted);text-align:center;font-size:var(--cds-font-size-caption)}
+.g10-toast{position:sticky;bottom:12px;justify-self:center;background:var(--color-fg);color:var(--color-bg);padding:8px 14px;border-radius:var(--cds-radius);font-size:var(--cds-font-size-caption);z-index:5}
+@media (max-width:720px){.g10-row{grid-template-columns:minmax(0,1fr)}}
+[data-dash-source-state=empty]{color:transparent}
+[data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
+.g10-fail{display:flex;align-items:center;justify-content:center;gap:var(--cds-gap-xs);color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);min-height:inherit}
+.g10-fail::before{content:"";width:.375rem;height:.375rem;border-radius:50%;background:var(--color-bad)}
+</style>
+
+<div class="g10" id="g10">
+  <header class="g10-head" id="overview">
     <h1>G10 Shop Marketing Dashboard</h1>
-    <div class="headrow">
-      <div class="muted">Trial run 6 Dec · Grand opening 12 Dec 2026 · From the Retail Launch Deck R5</div>
-      <div class="count" id="countdown"></div>
+    <div class="g10-sub">Pak Sha Road, Causeway Bay · Trial run 6 Dec · Grand opening 12 Dec 2026 · From the Retail Launch Deck R5</div>
+    <div class="g10-headrow">
+      <div class="g10-count" id="g10-countdown"></div>
+      <div class="g10-sync" id="g10-sync"><i></i><span>Connecting…</span></div>
     </div>
-    <div class="foot-note" id="updated"></div>
+    <p class="g10-take">
+      In the deck, <b data-source="status_counts" data-field="n" data-where="status=Needs decision" class="dash-skeleton">—</b> of
+      <span data-source="status_counts" data-field="n" data-where="status=All" class="dash-skeleton">—</span> activations wait on an open Green Light decision, and
+      <b data-source="status_counts" data-field="n" data-where="status=Details TBC" class="dash-skeleton">—</b> more have details marked TBC.
+    </p>
   </header>
 
-  <section class="sec" id="progress">
-    <div class="sechead"><div>
-      <h2>Progress</h2>
-      <p class="muted small">Statuses come from the Activations database in Notion. Click a chip to filter.</p>
-    </div></div>
-    <div class="stack" id="stack" aria-hidden="true"></div>
-    <div class="chips" id="chips"></div>
-  </section>
-
-  <section class="sec" id="green-lights">
-    <div class="sechead"><div>
-      <h2>Green Light decisions</h2>
-      <p class="muted small">The five items the deck needs locked before creative, PR and costing.</p>
-    </div></div>
-    <div class="gls" id="gls"></div>
-  </section>
-
-  <section class="sec" id="kols">
-    <div class="sechead"><div>
-      <h2>KOL and celebrity invitations</h2>
-      <p class="muted small">Everyone named in the launch plan and where their reply stands.</p>
-    </div></div>
-    <div class="ksum" id="ksum"></div>
-    <div id="klist"></div>
-  </section>
-
-  <section class="sec" id="timeline">
-    <div class="sechead">
+  <section class="g10-card" id="progress">
+    <div class="g10-cardhead">
       <div>
-        <h2>Timeline</h2>
-        <p class="muted small" id="tl-note"></p>
+        <h2>Progress</h2>
+        <div class="g10-note">Statuses come from Notion. To change one, use “Edit in Notion” on that activation. Click a tile to filter.</div>
+      </div>
+    </div>
+    <div class="g10-stack" id="g10-stack" aria-hidden="true"></div>
+    <div class="g10-tiles" id="g10-tiles"></div>
+  </section>
+
+  <section class="g10-card" id="green-lights">
+    <div>
+      <h2>Green Light decisions</h2>
+      <div class="g10-note">The five items the deck needs locked before creative, PR and costing. Mark each one confirmed in Notion when it is agreed.</div>
+    </div>
+    <div class="g10-gls" id="g10-gls" data-source="decisions initiatives"></div>
+  </section>
+
+  <section class="g10-card" id="kols">
+    <div>
+      <h2>KOL and celebrity invitations</h2>
+      <div class="g10-note">Everyone named in the launch plan and where their reply stands. Update replies in Notion.</div>
+    </div>
+    <div class="k-sum" id="k-sum"></div>
+    <div id="k-list" data-source="kols"></div>
+  </section>
+
+  <section class="g10-card" id="timeline">
+    <div class="g10-cardhead">
+      <div>
+        <h2>Activation timeline</h2>
+        <div class="g10-note" id="g10-tl-note">Bars are coloured by status. Hover or tap a bar for details; click it to open it in the list.</div>
       </div>
       <div class="seg" role="group" aria-label="Time range">
         <button type="button" data-view="full" aria-pressed="true">Full campaign</button>
         <button type="button" data-view="fortnight" aria-pressed="false">Launch fortnight</button>
       </div>
     </div>
-    <div class="legend" id="legend"></div>
-    <div class="gantt" id="gantt"></div>
-    <div class="off" id="off"></div>
+    <div class="g10-legend" id="g10-legend"></div>
+    <div class="g10-gantt" id="g10-gantt" data-source="initiatives milestones"></div>
+    <div class="g10-off" id="g10-off"></div>
   </section>
 
-  <section class="sec" id="activations">
-    <div class="sechead">
+  <section class="g10-card" id="activations">
+    <div class="g10-cardhead">
       <div>
-        <h2>Activations</h2>
-        <p class="muted small">Click an activation with ▶ to see its plan. Use “Edit in Notion” to change a status or note.</p>
+        <h2>All activations</h2>
+        <div class="g10-note">Not started, Started, Pending, Finished or Dropped, as set in Notion. Click an activation with ▶ to see its plan from the deck.</div>
       </div>
-      <div class="tools">
-        <div class="seg" role="group" aria-label="Phase" id="phaseSeg"></div>
-        <input id="q" type="search" placeholder="Search activations, KOLs, open items" aria-label="Search activations">
-        <button type="button" class="clear" id="clear" hidden>Clear filters</button>
+      <div class="g10-tools">
+        <div class="seg" role="group" aria-label="Phase" id="g10-phase"></div>
+        <input id="g10-q" type="search" placeholder="Search activations, KOLs, open items" aria-label="Search activations">
+        <button type="button" class="g10-clear" id="g10-clear" hidden>Clear filters</button>
       </div>
     </div>
-    <div id="list"></div>
+    <div id="g10-list" data-source="initiatives"></div>
   </section>
-</main>
+  <div class="g10-toast" id="g10-toast" role="status" aria-live="polite" hidden></div>
+</div>
 
-<script id="launch-data" type="application/json">__LAUNCH_DATA__</script>
 <script>
-(function () {
-  const DATA = JSON.parse(document.getElementById('launch-data').textContent);
-  const ACTS = DATA.activations, KOLS = DATA.kols, DECS = DATA.decisions;
-  const STATES = [['Not started', 'c-ns'], ['Started', 'c-st'], ['Pending', 'c-pe'], ['Finished', 'c-fi'], ['Dropped', 'c-dr']];
-  const KSTATES = [['TBC', 'c-tbc'], ['Waiting for reply', 'c-wait'], ['Accepted', 'c-yes'], ['Turned down', 'c-no']];
-  const CLS = Object.fromEntries(STATES), KCLS = Object.fromEntries(KSTATES);
-  const PHASES = ['Pre-launch', 'Launch', 'Post-launch', 'Sustaining'];
-  const MILESTONES = [['2026-12-03', 'Handover'], ['2026-12-06', 'Trial run'], ['2026-12-12', 'Grand opening'], ['2027-02-06', 'CNY']];
-  const OPENING = Date.UTC(2026, 11, 12), DAY = 864e5;
-  const D = (s) => new Date(s + 'T00:00:00Z');
-  const today = () => { const n = new Date(); return new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())); };
-  const fmtDay = (d) => d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', timeZone: 'UTC'});
-  const $ = (s) => document.querySelector(s);
-  const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
-  const NS = 'http://www.w3.org/2000/svg';
-  const sv = (tag, attrs, txt) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (txt != null) e.textContent = txt; return e; };
-  const S = {prog: 'All', phase: 'All', q: '', view: 'full', sel: null, open: new Set()};
+dash.calc('status_counts', {
+  inputs: ['initiatives'],
+  title: 'Activations by deck status',
+  description: 'Counts activations in each planning status from the deck, plus the total.',
+  fn: (initiatives) => {
+    const order = ['Needs decision', 'Details TBC', 'Roadmap only', 'Planned', 'Dropped'];
+    return [{status: 'All', n: initiatives.length}, ...order.map((s) => ({status: s, n: initiatives.filter((r) => r.status === s).length}))];
+  },
+});
 
-  const editLink = (url) => { if (!url) return document.createTextNode(''); const a = el('a', 'edit', 'Edit in Notion ↗'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; return a; };
-  const pill = (txt, cls) => { const p = el('span', 'pill ' + cls); p.append(el('i', 'dot'), document.createTextNode(txt)); return p; };
+(function () {
+  const DAY = 864e5;
+  const PHASES = ['Pre-launch', 'Launch', 'Post-launch', 'Sustaining'];
+  const STATES = [{k: 'Not started', c: 'c-ns'}, {k: 'Started', c: 'c-st'}, {k: 'Pending', c: 'c-pe'}, {k: 'Finished', c: 'c-fi'}, {k: 'Dropped', c: 'c-dr'}];
+  const CLS = Object.fromEntries(STATES.map((s) => [s.k, s.c]));
+  const OPENING = Date.UTC(2026, 11, 12);
+  const D = (s) => new Date(s + 'T00:00:00Z');
+  const todayUTC = () => { const n = new Date(); return new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())); };
+  const fmtDay = d3.utcFormat('%-d %b');
+  const $ = (s) => document.querySelector(s);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const S = {prog: 'All', phase: 'All', view: 'full', q: '', sel: null, open: new Set(),
+    store: new Map(), db: null, user: null, uid: null, canWrite: null, inflight: new Set(), queued: new Map()};
+  const root = $('#g10');
+  if (dash.colors && dash.colors[0]) root.style.setProperty('--s-st', dash.colors[0]);
+
+  // countdown
+  const cd = $('#g10-countdown');
+  const days = Math.round((OPENING - todayUTC()) / DAY);
+  if (days > 0) cd.replaceChildren(el('strong', null, String(days)), document.createTextNode(days === 1 ? 'day to grand opening' : 'days to grand opening'));
+  else if (days === 0) cd.replaceChildren(el('strong', null, 'Today'), document.createTextNode('is grand opening'));
+  else cd.textContent = 'Opened 12 Dec 2026';
+
+  // legend + phase buttons
+  const lg = $('#g10-legend');
+  STATES.forEach((s) => { const sp = el('span', s.c); sp.append(el('i', 'dot'), document.createTextNode(s.k)); lg.append(sp); });
+  { const a = el('span'); a.append(el('i', 'ms'), document.createTextNode('Milestone')); const b = el('span'); b.append(el('i', 'td'), document.createTextNode('Today')); lg.append(a, b); }
+  const ph = $('#g10-phase');
+  ['All', ...PHASES].forEach((p) => { const b = el('button', null, p === 'All' ? 'All phases' : p); b.type = 'button'; b.dataset.phase = p; b.addEventListener('click', () => { S.phase = p; redraw(); }); ph.append(b); });
+  document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => { S.view = b.dataset.view; redraw(); }));
+  $('#g10-q').addEventListener('input', (e) => { S.q = e.target.value.trim().toLowerCase(); redraw(); });
+  $('#g10-clear').addEventListener('click', () => { S.prog = 'All'; S.phase = 'All'; S.q = ''; $('#g10-q').value = ''; S.sel = null; redraw(); });
+
+  let toastT;
+  const toast = (m) => { const t = $('#g10-toast'); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 3200); };
+  const setSync = (cls, m) => { const s = $('#g10-sync'); s.className = 'g10-sync ' + cls; s.querySelector('span').textContent = m; };
+
+  // shared status store (statuses people click are kept here, beside the deck data)
+  async function connect() {
+    const c = window.claude;
+    let db = null, user = null;
+    try { db = c && c.use ? await c.use('db') : null; } catch (e) { db = null; }
+    try { user = c && c.use ? await c.use('user') : null; } catch (e) { user = null; }
+    S.db = db; S.user = user;
+    if (!db) { S.canWrite = false; setSync('ro', 'Read-only copy · statuses come from Notion · refreshed ' + (window.G10_UPDATED || '')); redraw(); return; }
+    if (user) {
+      try { S.uid = await user.id(); } catch (e) { S.uid = null; }
+      try { const can = await user.can('data.write'); S.canWrite = can; } catch (e) { S.canWrite = null; }
+    }
+    setSync(S.canWrite === false ? 'ro' : 'live', S.canWrite === false ? 'View only: ask the owner for Editor access to update statuses' : 'Live · status changes save for everyone');
+    db.collection('progress').onSnapshot((snap) => {
+      S.store = new Map(snap.docs.map((d) => [d.id, d.data()]));
+      redraw();
+    }, () => setSync('', 'Lost connection to saved statuses. Reload the page.'));
+  }
+  async function save(key, fields) {
+    if (!S.db) return;
+    if (S.inflight.has(key)) { S.queued.set(key, fields); return; }
+    S.inflight.add(key);
+    try {
+      await S.db.doc('progress/' + key).set(Object.assign({}, fields, {updatedBy: S.uid, updatedAt: new Date().toISOString()}));
+    } catch (e) {
+      if (e && e.code === 'invalid_argument') { S.canWrite = false; setSync('ro', 'View only: ask the owner for Editor access to update statuses'); toast('Not saved: you have view-only access.'); redraw(); }
+      else toast('Not saved. Check your connection and try again.');
+    } finally {
+      S.inflight.delete(key);
+      if (S.queued.has(key)) { const f = S.queued.get(key); S.queued.delete(key); save(key, f); }
+    }
+  }
+  const progOf = (r) => (S.store.get('act-' + r.id) || {}).progress || r.start_status || 'Not started';
+  const KSTATES = [['TBC', 'c-tbc'], ['Waiting for reply', 'c-wait'], ['Accepted', 'c-yes'], ['Turned down', 'c-no']];
+  const kolOf = (k) => (S.store.get('kol-' + k.id) || {}).status || k.start_status || 'TBC';
+  const decOf = (g) => (S.store.get('dec-' + g.id) || {}).status || g.status || 'Open';
+  const metaOf = (key) => S.store.get(key) || {};
+  function ago(iso) {
+    if (!iso) return '';
+    const m = Math.round((Date.now() - Date.parse(iso)) / 6e4);
+    if (m < 1) return 'just now'; if (m < 60) return m + ' min ago';
+    const h = Math.round(m / 60); if (h < 24) return h + ' h ago';
+    const d = Math.round(h / 24); return d === 1 ? 'yesterday' : d + ' days ago';
+  }
+  async function fillNames(box) {
+    const spans = [...box.querySelectorAll('[data-uid]')];
+    if (!spans.length || !S.user) return;
+    let ps = {};
+    try { ps = await S.user.profiles([...new Set(spans.map((s) => s.dataset.uid))]); } catch (e) { return; }
+    spans.forEach((s) => { const p = ps[s.dataset.uid]; s.textContent = p && p.isMe ? 'you' : ((p && p.name) || 'a teammate'); });
+  }
+  function notionLink(url) {
+    if (!url) return null;
+    const a = el('a', 'g10-edit', 'Edit in Notion ↗'); a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    return a;
+  }
+  function buttons(states, current, label, onPick) {
+    const g = el('div', 'pseg'); g.setAttribute('role', 'group'); g.setAttribute('aria-label', label);
+    states.forEach(([k, c]) => {
+      const b = el('button', 'pbtn ' + c); b.type = 'button';
+      b.append(el('i', 'dot'), document.createTextNode(k));
+      b.setAttribute('aria-pressed', String(current === k));
+      b.disabled = S.canWrite === false || !S.db;
+      if (b.disabled) b.title = 'Change this in Notion';
+      b.addEventListener('click', () => { if (current !== k) onPick(k); });
+      g.append(b);
+    });
+    return g;
+  }
+
+  const matches = (r) => (S.prog === 'All' || progOf(r) === S.prog)
+    && (S.phase === 'All' || r.phase === S.phase)
+    && (!S.q || [r.initiative, r.phase, r.date_label, progOf(r), r.status, r.decision, r.open_items, r.details ? JSON.stringify(r.details) : ''].join(' ').toLowerCase().includes(S.q));
+  const byStart = (a, b) => (a.start || '9999').localeCompare(b.start || '9999') || (a.end || '').localeCompare(b.end || '');
+
+  let last = null;
+  function redraw() { if (last) draw(last); }
+
+  dash.onData(() => {
+    const ini = dash.data('initiatives'), dec = dash.data('decisions'), ms = dash.data('milestones');
+    const ok = ini.status === 'ok';
+    document.querySelectorAll('.dash-skeleton').forEach((n) => { if (ok || ini.status === 'error') n.classList.remove('dash-skeleton'); });
+    const counts = dash.data('status_counts');
+    document.querySelectorAll('[data-source="status_counts"]').forEach((n) => {
+      const s = n.dataset.where.split('=')[1];
+      const row = counts.status === 'ok' ? counts.data.find((r) => r.status === s) : null;
+      n.textContent = row ? d3.format(',')(row.n) : '—';
+    });
+    if (!ok) {
+      last = null;
+      if (ini.status === 'error') { $('#g10-gantt').replaceChildren(el('div', 'g10-fail', 'Failed to load')); $('#g10-list').replaceChildren(el('div', 'g10-fail', 'Failed to load')); }
+      return;
+    }
+    const kl = dash.data('kols');
+    if (kl.status === 'error') $('#k-list').replaceChildren(el('div', 'g10-fail', 'Failed to load'));
+    last = {ini: ini.data, dec: dec.status === 'ok' ? dec.data : null, ms: ms.status === 'ok' ? ms.data : [], kols: kl.status === 'ok' ? kl.data : null};
+    draw(last);
+  });
+
+  function draw(d) {
+    document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === S.view)));
+    document.querySelectorAll('[data-phase]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.phase === S.phase)));
+    $('#g10-clear').hidden = S.prog === 'All' && S.phase === 'All' && !S.q && !S.sel;
+    drawProgress(d.ini);
+    if (d.dec) drawDecisions(d.dec, d.ini); else if (dash.data('decisions').status === 'error') $('#g10-gls').replaceChildren(el('div', 'g10-fail', 'Failed to load'));
+    if (d.kols) drawKols(d.kols, d.ini);
+    drawGantt(d.ini, d.ms);
+    drawList(d.ini);
+  }
+
+  function drawProgress(ini) {
+    const counts = Object.fromEntries(STATES.map((s) => [s.k, ini.filter((r) => progOf(r) === s.k).length]));
+    const stack = $('#g10-stack'); stack.replaceChildren();
+    STATES.forEach((s) => { if (!counts[s.k]) return; const sp = el('span', s.c); sp.style.width = (100 * counts[s.k] / ini.length) + '%'; stack.append(sp); });
+    const tiles = $('#g10-tiles'); tiles.replaceChildren();
+    const mk = (k, c, n) => {
+      const b = el('button', 'g10-tile ' + c); b.type = 'button'; b.setAttribute('aria-pressed', String(S.prog === k));
+      const lab = el('span', 'lab'); lab.append(el('span', 'dot'), document.createTextNode(k === 'All' ? 'All activations' : k));
+      b.append(lab, el('span', 'num', String(n)));
+      b.addEventListener('click', () => { S.prog = (S.prog === k && k !== 'All') ? 'All' : k; redraw(); });
+      tiles.append(b);
+    };
+    mk('All', 'c-all', ini.length);
+    STATES.forEach((s) => mk(s.k, s.c, counts[s.k]));
+  }
+
+  function drawDecisions(dec, ini) {
+    const box = $('#g10-gls'), today = todayUTC();
+    const cards = dec.slice().sort((a, b) => a.n - b.n).map((g) => {
+      const st = decOf(g), confirmed = st === 'Confirmed';
+      const diff = Math.round((D(g.needed_by) - today) / DAY);
+      const c = el('article', 'g10-gl' + (!confirmed && diff < 0 ? ' is-late' : ''));
+      c.id = 'gl-' + g.id;
+      const w = 'id=' + g.id;
+      const top = el('div', 'top');
+      const id = el('span', 'id', g.id); id.dataset.source = 'decisions'; id.dataset.field = 'id'; id.dataset.where = w;
+      let t, k;
+      if (confirmed) { t = 'Confirmed'; k = 'ok'; }
+      else if (diff < 0) { t = 'Overdue by ' + (-diff) + (diff === -1 ? ' day' : ' days'); k = 'late'; }
+      else if (diff === 0) { t = 'Due today'; k = 'soon'; }
+      else if (diff <= 3) { t = 'Due in ' + diff + (diff === 1 ? ' day' : ' days'); k = 'soon'; }
+      else { t = 'Due in ' + diff + ' days'; k = 'later'; }
+      top.append(id, el('span', 'due ' + k, t));
+      const item = el('div', 'item', g.item); item.dataset.source = 'decisions'; item.dataset.field = 'item'; item.dataset.where = w;
+      const dl = el('dl');
+      const add = (label, field, text) => { const dd = el('dd', null, text); dd.dataset.source = 'decisions'; dd.dataset.field = field; dd.dataset.where = w; dl.append(el('dt', null, label), dd); };
+      add('Needed by', 'needed_by', fmtDay(D(g.needed_by)));
+      add('To confirm', 'confirm', g.confirm);
+      add('Unlocks', 'unlocks', g.unlocks);
+      const linked = ini.filter((r) => r.decision === g.id).map((r) => r.initiative);
+      if (linked.length) dl.append(el('dt', null, 'Activations waiting on this'), el('dd', null, linked.join(' · ')));
+      c.append(top, item, dl, buttons([['Open', 'c-pe'], ['Confirmed', 'c-fi']], st, g.item + ' status', (v) => save('dec-' + g.id, {status: v})));
+      const gn = notionLink(g.url); if (gn) c.append(gn);
+      const m = metaOf('dec-' + g.id);
+      if (m.updatedBy) { const who = el('div', 'g10-note'); const n = el('span', null, '…'); n.dataset.uid = m.updatedBy; who.append(document.createTextNode('Updated by '), n, document.createTextNode(' · ' + ago(m.updatedAt))); c.append(who); }
+      return c;
+    });
+    box.replaceChildren(...cards);
+    fillNames(box);
+  }
+
+  function drawKols(kols, ini) {
+    const sum = $('#k-sum'); sum.replaceChildren();
+    KSTATES.forEach(([k, c]) => { const n = kols.filter((r) => kolOf(r) === k).length; const sp = el('span', c); sp.append(el('i', 'dot'), document.createTextNode(k + ' '), el('b', null, String(n))); sum.append(sp); });
+    const box = $('#k-list');
+    const order = {'Accepted': 0, 'Waiting for reply': 1, 'TBC': 2, 'Turned down': 3};
+    const rows = kols.slice().sort((a, b) => order[kolOf(a)] - order[kolOf(b)]).map((k) => {
+      const st = kolOf(k);
+      const row = el('div', 'k-row' + (st === 'Turned down' ? ' is-no' : ''));
+      row.id = 'kol-' + k.id;
+      const a = el('div'); a.append(el('div', 'nm', k.name), el('div', 'sub', k.profile));
+      const kn = notionLink(k.url); if (kn) a.append(kn);
+      const b = el('div', 'act');
+      const act = ini.find((r) => r.id === k.activation_id);
+      b.append(el('div', null, k.activation), el('div', 'sub', k.timing));
+      if (act) { b.style.cursor = 'pointer'; b.title = 'Show this activation'; b.addEventListener('click', () => { S.sel = act.id; if (act.details) S.open.add(act.id); redraw(); const r = document.getElementById('row-' + act.id); if (r) r.scrollIntoView({behavior: 'smooth', block: 'center'}); }); }
+      row.append(a, b, buttons(KSTATES, st, k.name + ' reply status', (v) => save('kol-' + k.id, {status: v})));
+      if (k.note) { const n = el('div', 'note'); n.append(el('b', null, 'Note'), document.createTextNode(k.note)); row.append(n); }
+      const m = metaOf('kol-' + k.id);
+      if (m.updatedBy) { const w = el('div', 'note g10-note'); const nn = el('span', null, '…'); nn.dataset.uid = m.updatedBy; w.append(document.createTextNode('Set to ' + st + ' by '), nn, document.createTextNode(' · ' + ago(m.updatedAt))); row.append(w); }
+      return row;
+    });
+    box.replaceChildren(...rows);
+    fillNames(box);
+  }
+
+  const tip = el('div', 'g10-tip'); tip.hidden = true;
+  function drawGantt(ini, ms) {
+    const box = $('#g10-gantt');
+    const W = Math.max(box.clientWidth || 800, 300);
+    const narrow = W < 600;
+    const today = todayUTC();
+    const dom = S.view === 'full' ? [new Date(Math.min(+D('2026-10-19'), +today - 4 * DAY)), D('2027-03-01')] : [D('2026-11-29'), D('2026-12-13')];
+    const visible = ini.filter(matches);
+    const inView = visible.filter((r) => r.start && r.end && D(r.start) < dom[1] && +D(r.end) + DAY > dom[0]);
+    const off = visible.filter((r) => !inView.includes(r));
+    $('#g10-off').textContent = off.length ? 'Not on this view: ' + off.map((r) => r.initiative + ' (' + r.date_label + ')').join(' · ') : '';
+    $('#g10-tl-note').textContent = S.view === 'full'
+      ? 'Mid Oct 2026 to Feb 2027 by week. Bars are coloured by status; hover or tap for details, click to open it in the list.'
+      : '30 Nov to 12 Dec 2026 by day: handover, car tour, trial run, VIP visits and opening.';
+    const labelW = narrow ? Math.min(132, W * 0.4) : Math.min(270, W * 0.3);
+    const rowH = narrow ? 24 : 26, headH = 24, top = 44, bottom = 8;
+    const lines = [];
+    PHASES.forEach((p) => { const rows = inView.filter((r) => r.phase === p).sort(byStart); if (rows.length) { lines.push({head: p}); rows.forEach((r) => lines.push({r})); } });
+    let y = top; lines.forEach((l) => { l.y = y; y += l.head ? headH : rowH; });
+    const H = Math.max(y + bottom, 120);
+    const x = d3.scaleUtc(dom, [labelW + 10, W - 10]);
+    const svg = d3.create('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Activation timeline');
+    svg.append('clipPath').attr('id', 'g10clip').append('rect').attr('x', labelW + 10).attr('y', 0).attr('width', W - labelW - 20).attr('height', H);
+    const ticks = S.view === 'full' ? d3.utcMonday.range(dom[0], dom[1]).filter((d, i) => W > 900 || i % 2 === 0) : d3.utcDay.range(dom[0], dom[1]);
+    const g = svg.append('g');
+    g.selectAll('line').data(ticks).join('line').attr('x1', (d) => x(d)).attr('x2', (d) => x(d)).attr('y1', top - 6).attr('y2', H - bottom).attr('stroke', 'var(--cds-chart-grid)');
+    const tl = g.selectAll('text').data(ticks).join('text').attr('x', (d) => x(d) + 3).attr('y', 14).attr('fill', 'var(--color-fg-muted)')
+      .style('font-size', 'var(--cds-font-size-caption)').style('font-variant-numeric', 'tabular-nums')
+      .text((d, i) => S.view === 'full' ? (d.getUTCDate() <= 7 || i === 0 ? d3.utcFormat('%b %-d')(d) : d3.utcFormat('%-d')(d)) : (narrow ? d3.utcFormat('%-d')(d) : d3.utcFormat('%a %-d')(d)));
+    lines.forEach((l) => {
+      if (l.head) {
+        svg.append('rect').attr('x', 0).attr('y', l.y).attr('width', W).attr('height', headH - 4).attr('rx', 4).attr('fill', 'var(--color-bg)');
+        svg.append('text').attr('x', 6).attr('y', l.y + headH / 2 + 1).attr('dominant-baseline', 'middle').attr('fill', 'var(--color-fg-muted)')
+          .style('font-size', 'var(--cds-font-size-caption)').style('letter-spacing', '.06em').text(l.head.toUpperCase());
+      } else {
+        l.t = svg.append('text').attr('x', 6).attr('y', l.y + rowH / 2).attr('dominant-baseline', 'middle')
+          .attr('fill', progOf(l.r) === 'Dropped' ? 'var(--color-fg-muted)' : 'var(--color-fg)')
+          .style('font-size', 'var(--cds-font-size-caption)').style('font-weight', S.sel === l.r.id ? 600 : 400)
+          .style('text-decoration', progOf(l.r) === 'Dropped' ? 'line-through' : null).text(l.r.initiative);
+      }
+    });
+    const msIn = ms.filter((m) => D(m.date) >= dom[0] && D(m.date) <= dom[1]);
+    const mx = (m) => x(+D(m.date) + DAY / 2);
+    svg.append('g').selectAll('line').data(msIn).join('line').attr('x1', mx).attr('x2', mx).attr('y1', top - 6).attr('y2', H - bottom).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+    const labels = [];
+    msIn.filter((m) => S.view === 'fortnight' || m.label === 'Grand opening' || m.label === 'CNY').forEach((m) => labels.push({x: mx(m), t: svg.append('text').attr('x', mx(m) + 3).attr('y', 32).attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', 500).text(m.label)}));
+    if (today >= dom[0] && today <= dom[1]) {
+      const tx = x(+today + DAY / 2);
+      svg.append('line').attr('x1', tx).attr('x2', tx).attr('y1', top - 10).attr('y2', H - bottom).attr('stroke', 'var(--color-fg)').attr('stroke-width', 2);
+      labels.push({x: tx, t: svg.append('text').attr('x', tx + 3).attr('y', 32).attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', 600).text('Today')});
+    }
+    const bg = svg.append('g').attr('clip-path', 'url(#g10clip)');
+    lines.filter((l) => l.r).forEach((l) => {
+      const r = l.r, p = progOf(r), cls = CLS[p] || 'c-ns';
+      const s = D(r.start), e = new Date(+D(r.end) + DAY), cy = l.y + rowH / 2;
+      const hollow = p === 'Not started' || p === 'Dropped';
+      const m = bg.append('g').attr('class', 'mark ' + cls).attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${r.initiative}, ${r.date_label}, ${p}`);
+      const dim = S.sel && S.sel !== r.id ? 0.35 : 1;
+      if (r.kind === 'point' || +e - +s <= DAY) {
+        const cx = x(+s + DAY / 2), k = S.sel === r.id ? 8 : 6.5;
+        m.append('path').attr('d', `M${cx},${cy - k}L${cx + k},${cy}L${cx},${cy + k}L${cx - k},${cy}Z`)
+          .attr('fill', hollow ? 'var(--color-panel)' : 'var(--c)').attr('stroke', 'var(--c)').attr('stroke-width', 1.5)
+          .attr('stroke-dasharray', p === 'Dropped' ? '2 2' : null).attr('opacity', dim);
+      } else {
+        const x0 = x(s), x1 = Math.max(x(e) - 1, x0 + 6);
+        m.append('rect').attr('x', x0).attr('y', cy - 7).attr('width', x1 - x0).attr('height', 14).attr('rx', 4)
+          .attr('fill', hollow ? 'var(--color-panel)' : 'var(--c)').attr('stroke', S.sel === r.id ? 'var(--color-fg)' : 'var(--c)')
+          .attr('stroke-width', S.sel === r.id ? 2 : 1.5).attr('stroke-dasharray', p === 'Dropped' ? '3 2' : null).attr('opacity', dim);
+      }
+      const show = (ev) => {
+        const rect = box.getBoundingClientRect();
+        const st = el('div', cls); st.append(el('i', 'dot'), document.createTextNode(' ' + p));
+        tip.replaceChildren(el('div', 'when', r.date_label + ' · ' + r.phase), el('strong', null, r.initiative), st);
+        if (r.open_items) tip.append(el('div', 'when', r.open_items));
+        tip.hidden = false;
+        const kb = ev.type === 'focus';
+        const px = kb ? x(s) * rect.width / W : ev.clientX - rect.left;
+        const py = kb ? cy * rect.height / H : ev.clientY - rect.top;
+        tip.style.left = Math.max(0, Math.min(px + 12, rect.width - tip.offsetWidth)) + 'px';
+        tip.style.top = (py + 14 + tip.offsetHeight > rect.height ? py - tip.offsetHeight - 10 : py + 14) + 'px';
+      };
+      const pick = () => {
+        S.sel = S.sel === r.id ? null : r.id;
+        if (S.sel && r.details) S.open.add(r.id);
+        redraw();
+        const row = document.getElementById('row-' + r.id);
+        if (row && S.sel) row.scrollIntoView({behavior: 'smooth', block: 'center'});
+      };
+      m.on('mousemove', show).on('focus', show).on('mouseleave', () => { tip.hidden = true; }).on('blur', () => { tip.hidden = true; })
+        .on('click', pick).on('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(); } });
+    });
+    if (!lines.length) svg.append('text').attr('x', W / 2).attr('y', 80).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('No activations match these filters in this range.');
+    box.style.minHeight = H + 'px';
+    box.replaceChildren(svg.node(), tip); tip.hidden = true;
+    let end = -Infinity;
+    tl.each(function () { const bx = +this.getAttribute('x'), w = this.getComputedTextLength(); if (bx < end + 4 || bx + w > W) this.remove(); else end = bx + w; });
+    lines.forEach((l) => { if (!l.t) return; const n = l.t.node(); let s = l.r.initiative; while (n.getComputedTextLength() > labelW - 6 && s.length > 4) { s = s.slice(0, -2); n.textContent = s + '…'; } });
+    let mEnd = -Infinity;
+    labels.sort((a, b) => a.x - b.x).forEach((lb) => { const n = lb.t.node(), w = n.getComputedTextLength(); let bx = lb.x + 3; if (bx + w > W) { lb.t.attr('x', lb.x - 3).attr('text-anchor', 'end'); bx = lb.x - 3 - w; } if (bx < mEnd + 6) lb.t.remove(); else mEnd = bx + w; });
+  }
+
+  // Names the team has crossed out (r.struck) show with a line through them wherever they appear
   function rich(text, r) {
     const list = (r.struck || []).filter((x) => x && x.name);
     const frag = document.createDocumentFragment();
     if (!list.length || !text) { frag.append(document.createTextNode(text || '')); return frag; }
     const esc = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    String(text).split(new RegExp('(' + list.map((x) => esc(x.name)).join('|') + ')')).forEach((p) => {
+    const parts = String(text).split(new RegExp('(' + list.map((x) => esc(x.name)).join('|') + ')'));
+    parts.forEach((p) => {
       const hit = list.find((x) => x.name === p);
-      if (hit) { const s = el('s', 'struck', p); s.title = hit.note || ''; frag.append(s); } else if (p) frag.append(document.createTextNode(p));
+      if (hit) { const sEl = el('s', 'struck', p); sEl.title = hit.note || ''; frag.append(sEl); } else if (p) frag.append(document.createTextNode(p));
     });
     return frag;
   }
 
-  // header
-  const days = Math.round((OPENING - today()) / DAY);
-  const cd = $('#countdown');
-  if (days > 0) cd.append(el('b', null, String(days)), document.createTextNode(days === 1 ? 'day to grand opening' : 'days to grand opening'));
-  else cd.textContent = days === 0 ? 'Grand opening is today' : 'Opened 12 Dec 2026';
-  $('#updated').textContent = 'Data from Notion, refreshed ' + new Date(DATA.updated).toLocaleString('en-GB', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Hong_Kong'}) + ' HKT.';
-  const lg = $('#legend');
-  STATES.forEach(([k, c]) => { const s = el('span', c); s.append(el('i', 'dot'), document.createTextNode(k)); lg.append(s); });
-  { const a = el('span'); a.append(el('i', 'ms'), document.createTextNode('Milestone')); const b = el('span'); b.append(el('i', 'td'), document.createTextNode('Today')); lg.append(a, b); }
-  const ps = $('#phaseSeg');
-  ['All', ...PHASES].forEach((p) => { const b = el('button', null, p === 'All' ? 'All phases' : p); b.type = 'button'; b.dataset.phase = p; b.addEventListener('click', () => { S.phase = p; render(); }); ps.append(b); });
-  document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => { S.view = b.dataset.view; render(); }));
-  $('#q').addEventListener('input', (e) => { S.q = e.target.value.trim().toLowerCase(); render(); });
-  $('#clear').addEventListener('click', () => { S.prog = 'All'; S.phase = 'All'; S.q = ''; $('#q').value = ''; S.sel = null; render(); });
-
-  const matches = (r) => (S.prog === 'All' || r.progress === S.prog) && (S.phase === 'All' || r.phase === S.phase)
-    && (!S.q || [r.initiative, r.phase, r.date_label, r.progress, r.status, r.decision, r.open_items, r.details ? JSON.stringify(r.details) : ''].join(' ').toLowerCase().includes(S.q));
-  const byStart = (a, b) => (a.start || '9999').localeCompare(b.start || '9999') || (a.end || '').localeCompare(b.end || '');
-
-  function render() {
-    document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === S.view)));
-    document.querySelectorAll('[data-phase]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.phase === S.phase)));
-    $('#clear').hidden = S.prog === 'All' && S.phase === 'All' && !S.q && !S.sel;
-    renderProgress(); renderDecisions(); renderKols(); renderGantt(); renderList();
-  }
-
-  function renderProgress() {
-    const counts = Object.fromEntries(STATES.map(([k]) => [k, ACTS.filter((r) => r.progress === k).length]));
-    const stack = $('#stack'); stack.replaceChildren();
-    STATES.forEach(([k, c]) => { if (!counts[k]) return; const s = el('span', c); s.style.width = (100 * counts[k] / ACTS.length) + '%'; stack.append(s); });
-    const chips = $('#chips'); chips.replaceChildren();
-    const mk = (k, c, n) => { const b = el('button', 'chip ' + c); b.type = 'button'; b.setAttribute('aria-pressed', String(S.prog === k)); b.append(el('i', 'dot'), document.createTextNode(k === 'All' ? 'All activations' : k), el('b', null, String(n))); b.addEventListener('click', () => { S.prog = (S.prog === k && k !== 'All') ? 'All' : k; render(); }); chips.append(b); };
-    mk('All', 'c-all', ACTS.length);
-    STATES.forEach(([k, c]) => mk(k, c, counts[k]));
-  }
-
-  function renderDecisions() {
-    const t = today();
-    $('#gls').replaceChildren(...DECS.map((g) => {
-      const confirmed = g.status === 'Confirmed';
-      const diff = g.needed_by ? Math.round((D(g.needed_by) - t) / DAY) : null;
-      const c = el('article', 'gl' + (confirmed ? ' done' : diff !== null && diff < 0 ? ' late' : ''));
-      let txt = 'No date', cls = 'later';
-      if (confirmed) { txt = 'Confirmed'; cls = 'ok'; }
-      else if (diff === null) { txt = 'No date'; }
-      else if (diff < 0) { txt = 'Overdue by ' + (-diff) + (diff === -1 ? ' day' : ' days'); cls = 'late'; }
-      else if (diff === 0) { txt = 'Due today'; cls = 'soon'; }
-      else if (diff <= 3) { txt = 'Due in ' + diff + (diff === 1 ? ' day' : ' days'); cls = 'soon'; }
-      else txt = 'Due in ' + diff + ' days';
-      const top = el('div', 'top'); top.append(el('span', 'id', g.id), el('span', 'due ' + cls, txt));
-      const dl = el('dl');
-      [['Needed by', g.needed_by ? fmtDay(D(g.needed_by)) : '—'], ['To confirm', g.confirm], ['Unlocks', g.unlocks]].forEach(([k, v]) => { if (v) dl.append(el('dt', null, k), el('dd', null, v)); });
-      const linked = ACTS.filter((r) => r.decision === g.id).map((r) => r.initiative);
-      if (linked.length) dl.append(el('dt', null, 'Activations waiting on this'), el('dd', null, linked.join(' · ')));
-      const foot = el('div', 'foot'); foot.append(pill(g.status, confirmed ? 'c-fi' : 'c-pe'), editLink(g.url));
-      c.append(top, el('div', 'item', g.item), dl, foot);
-      return c;
-    }));
-  }
-
-  function renderKols() {
-    const sum = $('#ksum'); sum.replaceChildren();
-    KSTATES.forEach(([k, c]) => { const s = el('span', c); s.append(el('i', 'dot'), document.createTextNode(k + ' '), el('b', null, String(KOLS.filter((x) => x.status === k).length))); sum.append(s); });
-    const order = {'Accepted': 0, 'Waiting for reply': 1, 'TBC': 2, 'Turned down': 3};
-    $('#klist').replaceChildren(...KOLS.slice().sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9)).map((k) => {
-      const row = el('div', 'krow' + (k.status === 'Turned down' ? ' is-no' : ''));
-      const a = el('div'); a.append(el('div', 'nm', k.name), el('div', 'sub', k.profile));
-      const b = el('div'); b.append(el('div', null, k.activation), el('div', 'sub', k.timing));
-      const act = ACTS.find((r) => r.id === k.activation_id);
-      if (act) { b.style.cursor = 'pointer'; b.title = 'Show this activation'; b.addEventListener('click', () => { S.sel = act.id; if (act.details) S.open.add(act.id); render(); const r = document.getElementById('row-' + act.id); if (r) r.scrollIntoView({behavior: 'smooth', block: 'center'}); }); }
-      const right = el('div', 'right'); right.append(pill(k.status, KCLS[k.status] || 'c-tbc'), editLink(k.url));
-      row.append(a, b, right);
-      if (k.note) { const n = el('div', 'note'); n.append(el('b', null, 'Note'), document.createTextNode(k.note)); row.append(n); }
-      return row;
-    }));
-  }
-
-  const tip = el('div', 'tip'); tip.hidden = true;
-  function renderGantt() {
-    const box = $('#gantt');
-    const W = Math.max(box.clientWidth || 900, 320), narrow = W < 620, t = today();
-    const dom = S.view === 'full' ? [new Date(Math.min(+D('2026-10-12'), +t - 4 * DAY)), D('2027-03-01')] : [D('2026-11-29'), D('2026-12-13')];
-    $('#tl-note').textContent = S.view === 'full' ? 'Mid Oct 2026 to Feb 2027. Bars are coloured by status; hover or tap for details, click to find it in the list.' : '30 Nov to 12 Dec 2026 by day: handover, car tour, trial run, VIP visits and opening.';
-    const vis = ACTS.filter(matches);
-    const inView = vis.filter((r) => r.start && r.end && D(r.start) < dom[1] && +D(r.end) + DAY > dom[0]);
-    const offList = vis.filter((r) => !inView.includes(r));
-    $('#off').textContent = offList.length ? 'Not on this view: ' + offList.map((r) => r.initiative + ' (' + r.date_label + ')').join(' · ') : '';
-    const labelW = narrow ? Math.min(130, W * 0.4) : Math.min(280, W * 0.3);
-    const rowH = narrow ? 24 : 26, headH = 24, top = 46;
-    const lines = [];
-    PHASES.forEach((p) => { const rows = inView.filter((r) => r.phase === p).sort(byStart); if (rows.length) { lines.push({head: p}); rows.forEach((r) => lines.push({r})); } });
-    let y = top; lines.forEach((l) => { l.y = y; y += l.head ? headH : rowH; });
-    const H = Math.max(y + 8, 110), x0 = labelW + 10, x1 = W - 10;
-    const x = (d) => x0 + (+d - +dom[0]) / (+dom[1] - +dom[0]) * (x1 - x0);
-    const svg = sv('svg', {viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Activation timeline'});
-    const defs = sv('defs', {}); const cp = sv('clipPath', {id: 'gclip'}); cp.append(sv('rect', {x: x0, y: 0, width: x1 - x0, height: H})); defs.append(cp); svg.append(defs);
-    const ticks = [];
-    if (S.view === 'full') { const d = new Date(dom[0]); d.setUTCDate(d.getUTCDate() + ((8 - d.getUTCDay()) % 7)); for (; d < dom[1]; d.setUTCDate(d.getUTCDate() + 7)) ticks.push(new Date(d)); }
-    else for (let d = new Date(dom[0]); d < dom[1]; d = new Date(+d + DAY)) ticks.push(d);
-    const tg = sv('g', {}); svg.append(tg);
-    ticks.forEach((d, i) => {
-      tg.append(sv('line', {x1: x(d), x2: x(d), y1: top - 6, y2: H - 8, stroke: 'var(--line)', 'stroke-width': 1}));
-      const lab = S.view === 'full' ? (d.getUTCDate() <= 7 || i === 0 ? fmtDay(d) : String(d.getUTCDate())) : (narrow ? String(d.getUTCDate()) : d.toLocaleDateString('en-GB', {weekday: 'short', day: 'numeric', timeZone: 'UTC'}));
-      const tx = sv('text', {x: x(d) + 3, y: 14, fill: 'var(--muted)', 'font-size': 12}, lab); tx.dataset.x = x(d) + 3; tg.append(tx);
-    });
-    const lab = sv('g', {}); svg.append(lab);
-    lines.forEach((l) => {
-      if (l.head) {
-        lab.append(sv('rect', {x: 0, y: l.y, width: W, height: headH - 4, rx: 4, fill: 'var(--panel)'}));
-        lab.append(sv('text', {x: 6, y: l.y + headH / 2 + 1, 'dominant-baseline': 'middle', fill: 'var(--gold)', 'font-size': 11, 'font-weight': 700, 'letter-spacing': '.08em'}, l.head.toUpperCase()));
-      } else {
-        const tt = sv('text', {x: 6, y: l.y + rowH / 2, 'dominant-baseline': 'middle', fill: l.r.progress === 'Dropped' ? 'var(--muted)' : 'var(--ink)', 'font-size': 12.5, 'font-weight': S.sel === l.r.id ? 700 : 400}, l.r.initiative);
-        if (l.r.progress === 'Dropped') tt.setAttribute('text-decoration', 'line-through');
-        lab.append(tt); l.text = tt;
-      }
-    });
-    const mg = sv('g', {}); svg.append(mg);
-    const mlabels = [];
-    MILESTONES.filter(([d]) => D(d) >= dom[0] && D(d) <= dom[1]).forEach(([d, name]) => {
-      const mx = x(+D(d) + DAY / 2);
-      mg.append(sv('line', {x1: mx, x2: mx, y1: top - 6, y2: H - 8, stroke: 'var(--muted)', 'stroke-dasharray': '4 3'}));
-      if (S.view === 'fortnight' || name === 'Grand opening' || name === 'CNY') { const tx = sv('text', {x: mx + 3, y: 32, fill: 'var(--ink)', 'font-size': 12, 'font-weight': 600}, name); mg.append(tx); mlabels.push({tx, mx}); }
-    });
-    if (t >= dom[0] && t <= dom[1]) {
-      const tx = x(+t + DAY / 2);
-      svg.append(sv('line', {x1: tx, x2: tx, y1: top - 10, y2: H - 8, stroke: 'var(--ink)', 'stroke-width': 2}));
-      const tl = sv('text', {x: tx + 3, y: 32, fill: 'var(--ink)', 'font-size': 12, 'font-weight': 700}, 'Today'); svg.append(tl); mlabels.push({tx: tl, mx: tx});
-    }
-    const bg = sv('g', {'clip-path': 'url(#gclip)'}); svg.append(bg);
-    lines.filter((l) => l.r).forEach((l) => {
-      const r = l.r, p = r.progress, cls = CLS[p] || 'c-ns';
-      const s = D(r.start), e = new Date(+D(r.end) + DAY), cy = l.y + rowH / 2;
-      const g = sv('g', {class: 'bar ' + cls, tabindex: 0, role: 'button', 'aria-label': `${r.initiative}, ${r.date_label}, ${p}`});
-      const dim = S.sel && S.sel !== r.id ? 0.35 : 1, hollow = p === 'Dropped' || p === 'Not started';
-      if (r.kind === 'point' || +e - +s <= DAY) {
-        const cx = x(+s + DAY / 2), k = S.sel === r.id ? 8 : 6.5;
-        g.append(sv('path', {d: `M${cx},${cy - k}L${cx + k},${cy}L${cx},${cy + k}L${cx - k},${cy}Z`, fill: hollow ? 'var(--bg)' : 'var(--c)', stroke: 'var(--c)', 'stroke-width': 1.5, 'stroke-dasharray': p === 'Dropped' ? '2 2' : 'none', opacity: dim}));
-      } else {
-        const bx = x(s), bw = Math.max(x(e) - 1 - bx, 6);
-        g.append(sv('rect', {x: bx, y: cy - 7, width: bw, height: 14, rx: 4, fill: hollow ? 'var(--bg)' : 'var(--c)', stroke: S.sel === r.id ? 'var(--ink)' : 'var(--c)', 'stroke-width': S.sel === r.id ? 2 : 1.5, 'stroke-dasharray': p === 'Dropped' ? '3 2' : 'none', opacity: dim}));
-      }
-      const show = (ev) => {
-        const rect = box.getBoundingClientRect();
-        const st = el('div', cls); st.append(el('i', 'dot'), document.createTextNode(' ' + p));
-        tip.replaceChildren(el('div', 'muted', r.date_label + ' · ' + r.phase), el('strong', null, r.initiative), st);
-        if (r.open_items) tip.append(el('div', 'muted', r.open_items));
-        tip.hidden = false;
-        const kb = ev.type === 'focus';
-        const px = kb ? x(s) * rect.width / W : ev.clientX - rect.left, py = kb ? cy * rect.height / H : ev.clientY - rect.top;
-        tip.style.left = Math.max(0, Math.min(px + 12, rect.width - tip.offsetWidth)) + 'px';
-        tip.style.top = (py + 14 + tip.offsetHeight > rect.height ? py - tip.offsetHeight - 10 : py + 14) + 'px';
-      };
-      const pick = () => { S.sel = S.sel === r.id ? null : r.id; if (S.sel && r.details) S.open.add(r.id); render(); const row = document.getElementById('row-' + r.id); if (row && S.sel) row.scrollIntoView({behavior: 'smooth', block: 'center'}); };
-      g.addEventListener('mousemove', show); g.addEventListener('focus', show);
-      g.addEventListener('mouseleave', () => { tip.hidden = true; }); g.addEventListener('blur', () => { tip.hidden = true; });
-      g.addEventListener('click', pick);
-      g.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(); } });
-      bg.append(g);
-    });
-    if (!lines.length) svg.append(sv('text', {x: W / 2, y: 80, 'text-anchor': 'middle', fill: 'var(--muted)', 'font-size': 13}, 'No activations match these filters in this range.'));
-    svg.setAttribute('height', H);
-    box.style.minHeight = H + 'px';
-    box.replaceChildren(svg, tip); tip.hidden = true;
-    let end = -Infinity;
-    [...tg.querySelectorAll('text')].forEach((tx) => { const bx = +tx.dataset.x, w = tx.getComputedTextLength(); if (bx < end + 4 || bx + w > W) tx.remove(); else end = bx + w; });
-    lines.forEach((l) => { if (!l.text) return; let s = l.r.initiative; while (l.text.getComputedTextLength() > labelW - 8 && s.length > 4) { s = s.slice(0, -2); l.text.textContent = s + '…'; } });
-    let mEnd = -Infinity;
-    mlabels.sort((a, b) => a.mx - b.mx).forEach((m) => { const w = m.tx.getComputedTextLength(); let bx = m.mx + 3; if (bx + w > W) { m.tx.setAttribute('x', m.mx - 3); m.tx.setAttribute('text-anchor', 'end'); bx = m.mx - 3 - w; } if (bx < mEnd + 6) m.tx.remove(); else mEnd = bx + w; });
-  }
-
   function detailPanel(r) {
-    const d = r.details, p = el('div', 'detail'); p.id = 'det-' + r.id;
+    const d = r.details, p = el('div', 'g10-detail'); p.id = 'det-' + r.id;
     if (d.objective) { const o = el('div', 'obj'); o.append(el('b', null, 'OBJECTIVE'), rich(d.objective, r)); p.append(o); }
     (r.struck || []).forEach((x) => { const n = el('div', 'struck-note'); n.append(el('s', 'struck', x.name), document.createTextNode(': ' + (x.note || 'crossed out'))); p.append(n); });
     if (d.intro) p.append(el('div', 'src', d.intro));
@@ -409,33 +620,37 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
     return p;
   }
 
-  function renderList() {
-    const box = $('#list');
-    const vis = ACTS.filter(matches);
-    if (!vis.length) { box.replaceChildren(el('div', 'empty', 'No activations match. Clear the filters to see all of them.')); return; }
+  function drawList(ini) {
+    const box = $('#g10-list');
+    const vis = ini.filter(matches);
+    if (!vis.length) { box.replaceChildren(el('div', 'g10-empty', 'No activations match. Clear the filters to see all of them.')); return; }
     const frag = document.createDocumentFragment();
     PHASES.forEach((ph) => {
       const rows = vis.filter((r) => r.phase === ph).sort(byStart);
       if (!rows.length) return;
-      const sec = el('div', 'phase'); sec.append(el('h3', null, ph + ' · ' + rows.length));
+      const sec = el('div', 'g10-phase'); sec.append(el('h3', null, ph + ' · ' + rows.length));
       rows.forEach((r) => {
-        const row = el('div', 'row' + (S.sel === r.id ? ' sel' : '') + (r.progress === 'Dropped' ? ' is-dr' : ''));
+        const prog = progOf(r);
+        const row = el('div', 'g10-row' + (S.sel === r.id ? ' sel' : '') + (prog === 'Dropped' ? ' is-dr' : ''));
         row.id = 'row-' + r.id;
         const a = el('div');
-        const has = !!(r.details && ((r.details.sections || []).length || r.details.intro || r.details.objective));
+        const has = !!(r.details && (r.details.objective || (r.details.sections || []).length));
         const isOpen = has && S.open.has(r.id);
         if (has) {
-          const b = el('button', 'xbtn'); b.type = 'button'; b.setAttribute('aria-expanded', String(isOpen)); b.setAttribute('aria-controls', 'det-' + r.id);
+          const b = el('button', 'xbtn'); b.type = 'button';
+          b.setAttribute('aria-expanded', String(isOpen)); b.setAttribute('aria-controls', 'det-' + r.id);
           b.append(el('span', 'chev', '▶'), el('span', 't', r.initiative));
-          b.addEventListener('click', () => { if (S.open.has(r.id)) S.open.delete(r.id); else S.open.add(r.id); renderList(); });
+          b.addEventListener('click', () => { if (S.open.has(r.id)) S.open.delete(r.id); else S.open.add(r.id); redraw(); });
           a.append(b);
         } else a.append(el('div', 'nm', r.initiative));
         const meta = el('div', 'meta');
         if (r.status === 'Needs decision' && r.decision) meta.append(el('span', 'flag dec', 'Waiting on ' + r.decision));
         else if (r.status === 'Details TBC' || r.status === 'Roadmap only') meta.append(el('span', 'flag', r.status));
+        const nl = notionLink(r.url); if (nl) meta.append(nl);
         if (meta.childNodes.length) a.append(meta);
-        const right = el('div', 'right'); right.append(pill(r.progress, CLS[r.progress] || 'c-ns'), editLink(r.url));
-        row.append(a, el('div', 'when', r.date_label), right);
+        const m = metaOf('act-' + r.id);
+        if (m.updatedBy) { const w = el('div', 'who'); const n = el('span', null, '…'); n.dataset.uid = m.updatedBy; w.append(document.createTextNode('Set to ' + prog + ' by '), n, document.createTextNode(' · ' + ago(m.updatedAt))); a.append(w); }
+        row.append(a, el('div', 'when', r.date_label), buttons(STATES.map((s) => [s.k, s.c]), prog, r.initiative + ' status', (v) => save('act-' + r.id, {progress: v})));
         if (r.open_items) { const o = el('div', 'open'); o.append(rich(r.open_items, r)); row.append(o); }
         if (isOpen) row.append(detailPanel(r));
         sec.append(row);
@@ -443,11 +658,13 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
       frag.append(sec);
     });
     box.replaceChildren(frag);
+    fillNames(box);
   }
 
-  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(renderGantt, 150); });
-  render();
+  connect();
 })();
 </script>
+
+</div>
 </body>
 </html>
