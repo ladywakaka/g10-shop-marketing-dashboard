@@ -685,11 +685,13 @@ dash.calc('status_counts', {
 
 <style>
 /* File-folder look in black and white, mostly white: white page and cards, light grey folders,
-   two black folders for contrast, statuses on a black-to-grey scale. */
+   two black folders for contrast. One green (#2e7d4f) marks progress: Started is soft green,
+   Finished / Accepted / Confirmed are solid green, Pending stays dark grey. */
 :root{
   --page:#ffffff; --light:#f1f1f0; --black:#111111; --paper:#ffffff; --ink:#111111;
   --grey-mid:#8c8c8c; --grey-dark:#4a4a4a; --ink-soft:rgba(17,17,17,.6);
-  --color-fg-muted:var(--ink-soft); --color-ok:var(--ink); --color-warn:var(--ink); --color-bad:var(--ink);
+  --accent:#2e7d4f; --accent-soft:#d6ead9;
+  --color-fg-muted:var(--ink-soft); --color-ok:var(--accent); --color-warn:var(--ink); --color-bad:var(--ink);
   --cds-chart-categorical-1:var(--grey-mid); --cds-chart-muted:#d6d6d6; --cds-chart-reference:var(--ink-soft);
   --cds-chart-grid:rgba(17,17,17,.1); --cds-text-secondary:var(--ink-soft);
   --font-anthropic-sans:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
@@ -701,7 +703,7 @@ dash.calc('status_counts', {
 /* single deliberate look: the paper colours stay the same in dark mode */
 @media (prefers-color-scheme: dark){:root{
   --color-fg:var(--ink); --color-fg-muted:var(--ink-soft); --color-bg:var(--paper); --color-panel:var(--paper); --color-border-line:rgba(17,17,17,.16);
-  --color-ok:var(--ink); --color-warn:var(--ink); --color-bad:var(--ink); --cds-chart-muted:#d6d6d6; --cds-chart-grid:rgba(17,17,17,.1);
+  --color-ok:var(--accent); --color-warn:var(--ink); --color-bad:var(--ink); --cds-chart-muted:#d6d6d6; --cds-chart-grid:rgba(17,17,17,.1);
   --cds-chart-reference:var(--ink-soft); --cds-chart-categorical-1:var(--grey-mid); --cds-surface-popover:var(--paper); --cds-border:rgba(17,17,17,.16);
   --cds-text-secondary:var(--ink-soft); --cds-shadow-popover:0 8px 24px #0000001f, 0 2px 6px #00000014; color-scheme:light;
 }}
@@ -736,8 +738,15 @@ html,body{background:var(--page)}
 #timeline{--folder:var(--black);--folder-ink:#fff;--tab-x:18%}
 #activations{--folder:var(--light);--tab-x:46%}
 /* status colours kept inside the palette: greens for progress, ink for what needs attention */
-.g10{--s-ns:#d6d6d6;--s-st:var(--grey-mid);--s-pe:var(--grey-dark);--s-fi:var(--black);--s-dr:#ececec}
-.c-tbc{--c:#d6d6d6}.c-wait{--c:var(--grey-dark)}.c-yes{--c:var(--black)}.c-no{--c:#a8a8a8}
+.g10{--s-ns:#d6d6d6;--s-st:var(--accent-soft);--s-pe:var(--grey-dark);--s-fi:var(--accent);--s-dr:#ececec}
+#g10{--s-st:var(--accent-soft)!important}
+.pbtn.c-st .dot,.g10-tile.c-st .dot,.g10-legend .c-st .dot{box-shadow:0 0 0 1px var(--accent)}
+.pbtn.c-st[aria-pressed="true"]{color:var(--accent);border-color:var(--accent)}
+.pbtn.c-st[aria-pressed="true"] .dot{background:var(--accent)}
+.g10-gantt .mark.c-st rect,.g10-gantt .mark.c-st path{stroke:var(--accent)}
+.g10-stack span.c-st{box-shadow:inset 0 0 0 1px var(--accent)}
+.g10-gl:has(.pbtn.c-fi[aria-pressed="true"]){background:var(--accent-soft)}
+.c-tbc{--c:#d6d6d6}.c-wait{--c:var(--grey-dark)}.c-yes{--c:var(--accent)}.c-no{--c:#a8a8a8}
 .due.late{text-decoration:underline;text-underline-offset:3px}
 .g10-gl.is-late{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 /* cream folders: give inner paper a hairline so it separates from the folder */
