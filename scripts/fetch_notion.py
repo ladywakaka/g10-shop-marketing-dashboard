@@ -74,7 +74,7 @@ def plain(props, name):
         return text(v) or None
     if t in ("select", "status"):
         return v.get("name")
-    if t == "number":
+    if t in ("number", "url"):
         return v
     return None
 
@@ -179,6 +179,10 @@ def main():
             "activation": plain(p, "For Activation") or "",
             "activation_id": plain(p, "Activation Key") or "",
             "timing": plain(p, "Timing") or "",
+            "group": plain(p, "Group") or "",
+            "country": plain(p, "Country") or "",
+            "instagram": plain(p, "Instagram") or "",
+            "connection": plain(p, "9GAG Connection") or "",
             "url": row.get("url"),
         })
 

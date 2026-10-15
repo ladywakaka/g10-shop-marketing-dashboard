@@ -51,7 +51,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
     initiatives: raw.activations.map((r) => Object.assign({}, r, {start_status: r.progress})),
     kols: raw.kols.map((k) => Object.assign({}, k, {start_status: k.status})),
     decisions: raw.decisions,
-    milestones: [{date: '2026-12-03', label: 'Shop handover'}, {date: '2026-12-06', label: 'Trial run'}, {date: '2026-12-12', label: 'Grand opening'}, {date: '2027-02-06', label: 'CNY'}],
+    milestones: [{date: '2026-11-25', label: 'Winter Fest lights'}, {date: '2026-12-03', label: 'Shop handover'}, {date: '2026-12-06', label: 'Trial run'}, {date: '2026-12-11', label: 'Road closure'}, {date: '2026-12-12', label: 'Grand opening'}, {date: '2027-02-06', label: 'CNY'}],
   };
   const calcs = {}, draws = [];
   window.dash = {
@@ -189,7 +189,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
 <div class="g10" id="g10">
   <header class="g10-head" id="overview">
     <h1>G10 Shop Marketing Update</h1>
-    <div class="g10-sub">Pak Sha Road, Causeway Bay · Shop handover 3 Dec · Trial run 6 Dec · Grand opening 12 Dec 2026 · From the Retail Launch Deck R5</div>
+    <div class="g10-sub">Pak Sha Road, Causeway Bay · Shop handover 3 Dec · Trial run 6 Dec · Grand opening 12 Dec 2026 (proposed move to 6 or 10 Dec) · From the Retail Launch Deck R5</div>
     <div class="g10-headrow">
       <div class="g10-count" id="g10-countdown"></div>
       <div class="g10-sync" id="g10-sync"><i></i><span>Connecting…</span></div>
@@ -200,6 +200,29 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
       <b data-source="status_counts" data-field="n" data-where="status=Details TBC" class="dash-skeleton">—</b> more have details marked TBC.
     </p>
   </header>
+
+  <section class="g10-card" id="focus">
+    <div>
+      <h2>Focus</h2>
+      <div class="g10-note">Where the launch effort goes now.</div>
+    </div>
+    <ol class="f-list">
+      <li><b>Capture SEA and Mainland Chinese tourists.</b> Bring both into the shop, with the SEA creators below and China KOL visits on WeChat and XHS.</li>
+      <li><b>Ride the Lee Gardens Winter Fest.</b> Use the festival hype on our doorstep to draw its crowds to Grade10.</li>
+      <li><b>Use the booths outside Grade10.</b> Turn the Winter Fest stalls in front of the shop into foot traffic for us.</li>
+      <li><b>Launch before the Winter Fest opens.</b> Bring the launch forward to 6 Dec or 10 Dec, so it doesn't clash with the Winter Fest opening on 11 Dec in front of Hysan and our shop.</li>
+      <li><b>Move the early dates.</b> The Pokémon car activation now starts 28 Nov, and the media announcement moves to 4 Dec or 8 Dec.</li>
+    </ol>
+    <div class="f-fest">
+      <h3>Lee Gardens Winter Fest</h3>
+      <p>Runs around Hysan Place, Pak Sha Road and the nearby streets, right in front of our shop. We capture the opportunities it brings.</p>
+      <dl>
+        <dt>25 Nov</dt><dd>燈飾 launch: the festive lights go on</dd>
+        <dt>Dec</dt><dd>3D light-mapping shows on Pak Sha Road</dd>
+        <dt>11 Dec</dt><dd>封路兩星期: Pak Sha Road closes for two weeks for market stalls. The stalls go in and the market opens the same day, and they will block our shop front.</dd>
+      </dl>
+    </div>
+  </section>
 
   <section class="g10-card" id="progress">
     <div class="g10-cardhead">
@@ -225,6 +248,13 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
       <h2>KOL and celebrity invitations</h2>
       <div class="g10-note">Everyone named in the launch plan and where their reply stands. Update replies in Notion.</div>
     </div>
+    <div class="sea">
+      <h3 class="k-h">SEA creators · focus</h3>
+      <div class="g10-note">For the SEA tourist push. Grouped by whether they are already connected to 9GAG.</div>
+      <div class="k-sum" id="sea-sum"></div>
+      <div id="sea-list" data-source="kols"></div>
+    </div>
+    <h3 class="k-h">Launch plan invitations</h3>
     <div class="k-sum" id="k-sum"></div>
     <div id="k-list" data-source="kols"></div>
   </section>
@@ -484,12 +514,18 @@ dash.calc('status_counts', {
     fillNames(box);
   }
 
-  function drawKols(kols, ini) {
-    const sum = $('#k-sum'); sum.replaceChildren();
-    KSTATES.forEach(([k, c]) => { const n = kols.filter((r) => kolOf(r) === k).length; const sp = el('span', c); sp.append(el('i', 'dot'), document.createTextNode(k + ' '), el('b', null, String(n))); sum.append(sp); });
+  const SEA = 'SEA Creators';
+  const KORDER = {'Accepted': 0, 'Waiting for reply': 1, 'TBC': 2, 'Turned down': 3};
+  function kolSummary(box, kols) {
+    box.replaceChildren();
+    KSTATES.forEach(([k, c]) => { const n = kols.filter((r) => kolOf(r) === k).length; const sp = el('span', c); sp.append(el('i', 'dot'), document.createTextNode(k + ' '), el('b', null, String(n))); box.append(sp); });
+  }
+  function drawKols(all, ini) {
+    const kols = all.filter((k) => k.group !== SEA), sea = all.filter((k) => k.group === SEA);
+    drawSea(sea);
+    kolSummary($('#k-sum'), kols);
     const box = $('#k-list');
-    const order = {'Accepted': 0, 'Waiting for reply': 1, 'TBC': 2, 'Turned down': 3};
-    const rows = kols.slice().sort((a, b) => order[kolOf(a)] - order[kolOf(b)]).map((k) => {
+    const rows = kols.slice().sort((a, b) => KORDER[kolOf(a)] - KORDER[kolOf(b)]).map((k) => {
       const st = kolOf(k);
       const row = el('div', 'k-row' + (st === 'Turned down' ? ' is-no' : ''));
       row.id = 'kol-' + k.id;
@@ -509,20 +545,55 @@ dash.calc('status_counts', {
     fillNames(box);
   }
 
+  // SEA creators, grouped by 9GAG connection: connected first, then not connected yet
+  function drawSea(sea) {
+    const box = $('#sea-list');
+    const sec = $('.sea');
+    sec.hidden = !sea.length;
+    if (!sea.length) return;
+    kolSummary($('#sea-sum'), sea);
+    const groups = ['Connected to 9GAG', 'Not connected yet'];
+    const frag = document.createDocumentFragment();
+    [...groups, ''].forEach((g) => {
+      const list = sea.filter((k) => (groups.includes(k.connection) ? k.connection : '') === g)
+        .sort((a, b) => KORDER[kolOf(a)] - KORDER[kolOf(b)] || a.name.localeCompare(b.name));
+      if (!list.length) return;
+      frag.append(el('h4', 'sea-grp', (g || 'Connection not set') + ' · ' + list.length));
+      list.forEach((k) => {
+        const st = kolOf(k);
+        const row = el('div', 'k-row' + (st === 'Turned down' ? ' is-no' : ''));
+        row.id = 'kol-' + k.id;
+        const a = el('div'); a.append(el('div', 'nm', k.name));
+        if (k.instagram) {
+          const ig = el('a', 'sea-ig', '@' + k.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, ''));
+          ig.href = k.instagram; ig.target = '_blank'; ig.rel = 'noopener';
+          a.append(ig);
+        }
+        const kn = notionLink(k.url); if (kn) a.append(kn);
+        const b = el('div', 'act');
+        b.append(el('div', null, k.country), el('div', 'sub', k.profile));
+        row.append(a, b, buttons(KSTATES, st, k.name + ' reply status', (v) => save('kol-' + k.id, {status: v})));
+        if (k.note) { const n = el('div', 'note'); n.append(el('b', null, 'Note'), document.createTextNode(k.note)); row.append(n); }
+        frag.append(row);
+      });
+    });
+    box.replaceChildren(frag);
+  }
+
   const tip = el('div', 'g10-tip'); tip.hidden = true;
   function drawGantt(ini, ms) {
     const box = $('#g10-gantt');
     const W = Math.max(box.clientWidth || 800, 300);
     const narrow = W < 600;
     const today = todayUTC();
-    const dom = S.view === 'full' ? [new Date(Math.min(+D('2026-10-19'), +today - 4 * DAY)), D('2027-03-01')] : [D('2026-11-29'), D('2026-12-13')];
+    const dom = S.view === 'full' ? [new Date(Math.min(+D('2026-10-19'), +today - 4 * DAY)), D('2027-03-01')] : [D('2026-11-28'), D('2026-12-13')];
     const visible = ini.filter(matches);
     const inView = visible.filter((r) => r.start && r.end && D(r.start) < dom[1] && +D(r.end) + DAY > dom[0]);
     const off = visible.filter((r) => !inView.includes(r));
     $('#g10-off').textContent = off.length ? 'Not on this view: ' + off.map((r) => r.initiative + ' (' + r.date_label + ')').join(' · ') : '';
     $('#g10-tl-note').textContent = S.view === 'full'
       ? 'Mid Oct 2026 to Feb 2027 by week. Bars are coloured by status; hover or tap for details, click to open it in the list.'
-      : '30 Nov to 12 Dec 2026 by day: handover, car tour, trial run, VIP visits and opening.';
+      : '28 Nov to 12 Dec 2026 by day: car activation, media announcement, handover, trial run, Winter Fest road closure and opening.';
     const labelW = narrow ? Math.min(132, W * 0.4) : Math.min(270, W * 0.3);
     const rowH = narrow ? 24 : 26, headH = 24, top = 44, bottom = 8;
     const lines = [];
@@ -554,7 +625,7 @@ dash.calc('status_counts', {
     const mx = (m) => x(+D(m.date) + DAY / 2);
     svg.append('g').selectAll('line').data(msIn).join('line').attr('x1', mx).attr('x2', mx).attr('y1', top - 6).attr('y2', H - bottom).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
     const labels = [];
-    msIn.filter((m) => S.view === 'fortnight' || m.label === 'Shop handover' || m.label === 'Grand opening' || m.label === 'CNY').forEach((m) => labels.push({x: mx(m), left: S.view === 'full' && m.label === 'Shop handover', t: svg.append('text').attr('x', mx(m) + 3).attr('y', 32).attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', 500).text(m.label)}));
+    msIn.filter((m) => S.view === 'fortnight' || m.label === 'Winter Fest lights' || m.label === 'Shop handover' || m.label === 'Grand opening' || m.label === 'CNY').forEach((m) => labels.push({x: mx(m), left: S.view === 'full' && m.label === 'Shop handover', t: svg.append('text').attr('x', mx(m) + 3).attr('y', 32).attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', 500).text(m.label)}));
     if (today >= dom[0] && today <= dom[1]) {
       const tx = x(+today + DAY / 2);
       svg.append('line').attr('x1', tx).attr('x2', tx).attr('y1', top - 10).attr('y2', H - bottom).attr('stroke', 'var(--color-fg)').attr('stroke-width', 2);
@@ -784,6 +855,23 @@ html,body{background:var(--page)}
 .k-row .note b{color:rgba(17,17,17,.65)}
 .k-row.is-no .nm{color:rgba(17,17,17,.55)}
 .g10-sync{justify-content:center}
+/* focus folder */
+#focus{--folder:var(--black);--folder-ink:#fff;--tab-x:24%;color:#fff}
+.f-list{margin:0;padding-left:1.4em;display:grid;gap:10px;font-size:15px;line-height:1.45;max-width:80ch}
+.f-list b{font-weight:700}
+.f-fest{background:var(--paper);color:var(--ink);border-radius:14px;padding:clamp(14px,2.5vw,24px);display:grid;gap:8px}
+.f-fest h3{margin:0;font-family:var(--font-anthropic-serif);font-weight:400;font-size:26px;line-height:1.1}
+.f-fest p{margin:0;max-width:72ch}
+.f-fest dl{margin:4px 0 0;display:grid;grid-template-columns:auto 1fr;gap:8px 18px}
+.f-fest dt{font-weight:700;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
+.f-fest dd{margin:0}
+/* KOL folder: SEA creators first, on a white sheet */
+.k-h{margin:8px 0 0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--ink)}
+.sea{background:var(--paper);border-radius:14px;padding:clamp(14px,2.5vw,24px);display:grid;gap:10px}
+.sea .k-h{margin:0;color:var(--accent)}
+.sea-grp{margin:10px 0 0;padding-bottom:4px;font-size:12px;font-weight:700;border-bottom:1px solid rgba(17,17,17,.3)}
+.sea-ig{display:block;font-size:var(--cds-font-size-caption);color:var(--ink);text-underline-offset:3px;margin:2px 0}
+.sea .k-row .pbtn:not([aria-pressed="true"]){box-shadow:inset 0 0 0 1px rgba(17,17,17,.14)}
 @media (max-width:720px){.g10-card h2{left:30px;max-width:calc(100% - 50px);padding:14px 22px 9px}}
 </style>
 </body>

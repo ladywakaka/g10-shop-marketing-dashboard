@@ -12,10 +12,12 @@ Notion page **Grade10 › G10 Shop Launch Tracker**, with three databases:
 |---|---|
 | **Activations** | **Status** (Not started, Started, Pending, Finished, Dropped), **Open Items**, dates. The plan from the deck is in each row's page and shows as the ▶ details. |
 | **KOL Invitations** | **Reply Status** (TBC, Waiting for reply, Accepted, Turned down) and **Note**. |
+| | SEA creators: set **Group** to *SEA Creators* to show a person in the SEA section, grouped by **9GAG Connection** (Connected to 9GAG, Not connected yet), with **Country** and **Instagram**. |
 | **Green Light Decisions** | **Status** (Open, Confirmed) and **Needed By**. |
 
 - To cross out a name on an activation, write `Name: reason` in its **Crossed Out** field (one per line).
 - Do not change the **Key** fields; they link rows to the page.
+- The **Focus** folder (priorities and Lee Gardens Winter Fest dates) is written in `src/template.html`, not Notion. Edit it there.
 
 No marketing data is stored in this repository. Only the encrypted page is published.
 
