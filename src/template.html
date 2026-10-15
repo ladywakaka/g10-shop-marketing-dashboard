@@ -51,7 +51,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
     initiatives: raw.activations.map((r) => Object.assign({}, r, {start_status: r.progress})),
     kols: raw.kols.map((k) => Object.assign({}, k, {start_status: k.status})),
     decisions: raw.decisions,
-    milestones: [{date: '2026-11-25', label: 'Winter Fest lights'}, {date: '2026-12-02', label: 'Trial run'}, {date: '2026-12-03', label: 'Shop handover'}, {date: '2026-12-06', label: 'Grand opening'}, {date: '2026-12-11', label: 'Road closure'}, {date: '2027-02-06', label: 'CNY'}],
+    milestones: [{date: '2026-11-25', label: 'Winter Fest lights'}, {date: '2026-11-30', label: 'Shop handover'}, {date: '2026-12-02', label: 'Trial run'}, {date: '2026-12-06', label: 'Grand opening'}, {date: '2026-12-11', label: 'Road closure'}, {date: '2027-02-06', label: 'CNY'}],
   };
   const calcs = {}, draws = [];
   window.dash = {
@@ -189,7 +189,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
 <div class="g10" id="g10">
   <header class="g10-head" id="overview">
     <h1>G10 Shop Marketing Update</h1>
-    <div class="g10-sub">Pak Sha Road, Causeway Bay · Trial run 2–3 Dec · Shop handover 3 Dec · Grand opening 6 Dec 2026 · From the Retail Launch Deck R5</div>
+    <div class="g10-sub">Pak Sha Road, Causeway Bay · Shop handover 30 Nov · Trial run 2–3 Dec · Grand opening 6 Dec 2026 · Based on the Retail Launch Deck R5</div>
     <div class="g10-headrow">
       <div class="g10-count" id="g10-countdown"></div>
       <div class="g10-sync" id="g10-sync"><i></i><span>Connecting…</span></div>
@@ -204,22 +204,21 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
   <section class="g10-card" id="focus">
     <div>
       <h2>Focus</h2>
-      <div class="g10-note">Where the launch effort goes now.</div>
+      <div class="g10-note">Our priorities for the launch.</div>
     </div>
     <ol class="f-list">
-      <li><b>Capture SEA and Mainland Chinese tourists.</b> Bring both into the shop, with the SEA creators below and China KOL visits on WeChat and XHS.</li>
-      <li><b>Ride the Lee Gardens Winter Fest.</b> Use the festival hype on our doorstep to draw its crowds to Grade10.</li>
-      <li><b>Use the booths outside Grade10.</b> Turn the Winter Fest stalls in front of the shop into foot traffic for us.</li>
-      <li><b>Launch before the Winter Fest opens.</b> The grand opening moves to 6 Dec, clear of the Winter Fest opening on 11 Dec in front of Hysan and our shop.</li>
-      <li><b>Move the early dates.</b> Pokémon car 28 Nov to 11 Dec, trial run 2 to 3 Dec, media day and VIP visits from 4 Dec, then global and SEA KOLs 9 to 15 Dec.</li>
+      <li><b>Win SEA and Mainland Chinese tourists.</b> Bring them into the shop through our SEA creators and China KOL visits on WeChat and Xiaohongshu.</li>
+      <li><b>Ride the Lee Gardens Winter Fest.</b> Turn the festival buzz on our doorstep into visits to Grade10.</li>
+      <li><b>Make the most of the booths outside our door.</b> Use the Winter Fest stalls in front of the shop to steer foot traffic inside.</li>
+      <li><b>Open before the Winter Fest.</b> The grand opening is now 6 Dec, so it doesn't clash with the Winter Fest opening on 11 Dec in front of Hysan Place and our shop.</li>
     </ol>
     <div class="f-fest">
       <h3>Lee Gardens Winter Fest</h3>
-      <p>Runs around Hysan Place, Pak Sha Road and the nearby streets, right in front of our shop. We capture the opportunities it brings.</p>
+      <p>The festival takes over Hysan Place, Pak Sha Road and the surrounding streets, right outside our shop. We plan to turn its crowds into our customers.</p>
       <dl>
-        <dt>25 Nov</dt><dd>燈飾 launch: the festive lights go on</dd>
-        <dt>Dec</dt><dd>3D light-mapping shows on Pak Sha Road</dd>
-        <dt>11 Dec</dt><dd>封路兩星期: Pak Sha Road closes for two weeks for market stalls. The stalls go in and the market opens the same day, and they will block our shop front.</dd>
+        <dt>25 Nov</dt><dd>燈飾 launch: the festive lights are switched on.</dd>
+        <dt>Dec</dt><dd>3D light-mapping shows on Pak Sha Road.</dd>
+        <dt>11 Dec</dt><dd>封路兩星期: Pak Sha Road closes to traffic for two weeks. Market stalls are installed and the market opens the same day; the stalls will block our shop front.</dd>
       </dl>
     </div>
   </section>
@@ -228,7 +227,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
     <div class="g10-cardhead">
       <div>
         <h2>Progress</h2>
-        <div class="g10-note">Statuses come from Notion. Click a status button to open that activation in Notion and change it. Click a tile to filter.</div>
+        <div class="g10-note">Statuses come from Notion. Click a status button to change it in Notion, or click a tile to filter.</div>
       </div>
     </div>
     <div class="g10-stack" id="g10-stack" aria-hidden="true"></div>
@@ -238,7 +237,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
   <section class="g10-card" id="green-lights">
     <div>
       <h2>Green Light decisions</h2>
-      <div class="g10-note">The five items the deck needs locked before creative, PR and costing. Mark each one confirmed in Notion when it is agreed.</div>
+      <div class="g10-note">The five decisions the deck needs locked before creative, PR and costing can go ahead. Mark each one Confirmed in Notion once it is agreed.</div>
     </div>
     <div class="g10-gls" id="g10-gls" data-source="decisions initiatives"></div>
   </section>
@@ -246,17 +245,32 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
   <section class="g10-card" id="kols">
     <div>
       <h2>KOL and celebrity invitations</h2>
-      <div class="g10-note">Everyone named in the launch plan and where their reply stands. Update replies in Notion.</div>
+      <div class="g10-note">Everyone we are inviting, grouped by market, and where each reply stands. Update replies in Notion.</div>
     </div>
-    <div class="sea">
-      <h3 class="k-h">SEA creators · focus</h3>
-      <div class="g10-note">For the SEA tourist push. Grouped by whether they are already connected to 9GAG.</div>
-      <div class="k-sum" id="sea-sum"></div>
-      <div id="sea-list" data-source="kols"></div>
+    <div class="k-sheet" id="kg-sea">
+      <h3 class="k-h">SEA creators <span class="k-tag">Focus</span></h3>
+      <div class="g10-note">For the SEA tourist push, grouped by whether they are already connected to 9GAG.</div>
+      <div class="k-sum"></div>
+      <div class="k-list" data-source="kols"></div>
     </div>
-    <h3 class="k-h">Launch plan invitations</h3>
-    <div class="k-sum" id="k-sum"></div>
-    <div id="k-list" data-source="kols"></div>
+    <div class="k-sheet" id="kg-global">
+      <h3 class="k-h">Global KOLs</h3>
+      <div class="g10-note">International names from outside Hong Kong.</div>
+      <div class="k-sum"></div>
+      <div class="k-list" data-source="kols"></div>
+    </div>
+    <div class="k-sheet" id="kg-hk">
+      <h3 class="k-h">HK KOLs</h3>
+      <div class="g10-note">Hong Kong celebrities, athletes and creators.</div>
+      <div class="k-sum"></div>
+      <div class="k-list" data-source="kols"></div>
+    </div>
+    <div class="k-sheet" id="kg-other" hidden>
+      <h3 class="k-h">Not grouped yet</h3>
+      <div class="g10-note">Set their Group in Notion to SEA Creators, Global KOLs or HK KOLs.</div>
+      <div class="k-sum"></div>
+      <div class="k-list" data-source="kols"></div>
+    </div>
   </section>
 
   <section class="g10-card" id="timeline">
@@ -279,7 +293,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
     <div class="g10-cardhead">
       <div>
         <h2>All activations</h2>
-        <div class="g10-note">Not started, Started, Pending, Finished or Dropped, as set in Notion. Click an activation with ▶ to see its plan from the deck.</div>
+        <div class="g10-note">Each status (Not started, Started, Pending, Finished or Dropped) is set in Notion. Click an activation marked ▶ to see its plan from the deck.</div>
       </div>
       <div class="g10-tools">
         <div class="seg" role="group" aria-label="Phase" id="g10-phase"></div>
@@ -447,7 +461,7 @@ dash.calc('status_counts', {
       return;
     }
     const kl = dash.data('kols');
-    if (kl.status === 'error') $('#k-list').replaceChildren(el('div', 'g10-fail', 'Failed to load'));
+    if (kl.status === 'error') document.querySelectorAll('.k-list').forEach((b) => b.replaceChildren(el('div', 'g10-fail', 'Failed to load')));
     last = {ini: ini.data, dec: dec.status === 'ok' ? dec.data : null, ms: ms.status === 'ok' ? ms.data : [], kols: kl.status === 'ok' ? kl.data : null};
     draw(last);
   });
@@ -514,71 +528,63 @@ dash.calc('status_counts', {
     fillNames(box);
   }
 
-  const SEA = 'SEA Creators';
   const KORDER = {'Accepted': 0, 'Waiting for reply': 1, 'TBC': 2, 'Turned down': 3};
+  const KGROUPS = [['SEA Creators', '#kg-sea'], ['Global KOLs', '#kg-global'], ['HK KOLs', '#kg-hk']];
   function kolSummary(box, kols) {
     box.replaceChildren();
     KSTATES.forEach(([k, c]) => { const n = kols.filter((r) => kolOf(r) === k).length; const sp = el('span', c); sp.append(el('i', 'dot'), document.createTextNode(k + ' '), el('b', null, String(n))); box.append(sp); });
   }
   function drawKols(all, ini) {
-    const kols = all.filter((k) => k.group !== SEA), sea = all.filter((k) => k.group === SEA);
-    drawSea(sea);
-    kolSummary($('#k-sum'), kols);
-    const box = $('#k-list');
-    const out = (k) => { const a = ini.find((r) => r.id === k.activation_id); return !!a && progOf(a) === 'Dropped'; };
-    const rows = kols.slice().sort((a, b) => out(a) - out(b) || KORDER[kolOf(a)] - KORDER[kolOf(b)]).map((k) => {
-      const st = kolOf(k);
-      const row = el('div', 'k-row' + (st === 'Turned down' || out(k) ? ' is-no' : ''));
-      row.id = 'kol-' + k.id;
-      const a = el('div'); a.append(el('div', 'nm', k.name), el('div', 'sub', k.profile));
-      const kn = notionLink(k.url); if (kn) a.append(kn);
-      const b = el('div', 'act');
-      const act = ini.find((r) => r.id === k.activation_id);
-      b.append(el('div', null, k.activation), el('div', 'sub', k.timing));
-      if (act) { b.style.cursor = 'pointer'; b.title = 'Show this activation'; b.addEventListener('click', () => { S.sel = act.id; if (act.details) S.open.add(act.id); redraw(); const r = document.getElementById('row-' + act.id); if (r) r.scrollIntoView({behavior: 'smooth', block: 'center'}); }); }
-      row.append(a, b, buttons(KSTATES, st, k.name + ' reply status', (v) => save('kol-' + k.id, {status: v})));
-      if (k.note) { const n = el('div', 'note'); n.append(el('b', null, 'Note'), document.createTextNode(k.note)); row.append(n); }
-      const m = metaOf('kol-' + k.id);
-      if (m.updatedBy) { const w = el('div', 'note g10-note'); const nn = el('span', null, '…'); nn.dataset.uid = m.updatedBy; w.append(document.createTextNode('Set to ' + st + ' by '), nn, document.createTextNode(' · ' + ago(m.updatedAt))); row.append(w); }
-      return row;
-    });
-    box.replaceChildren(...rows);
-    fillNames(box);
+    const known = KGROUPS.map(([g]) => g);
+    KGROUPS.forEach(([g, sel]) => drawGroup($(sel), all.filter((k) => k.group === g), ini, g === 'SEA Creators'));
+    drawGroup($('#kg-other'), all.filter((k) => !known.includes(k.group)), ini, false);
   }
 
-  // SEA creators, grouped by 9GAG connection: connected first, then not connected yet
-  function drawSea(sea) {
-    const box = $('#sea-list');
-    const sec = $('.sea');
-    sec.hidden = !sea.length;
-    if (!sea.length) return;
-    kolSummary($('#sea-sum'), sea);
-    const groups = ['Connected to 9GAG', 'Not connected yet'];
-    const frag = document.createDocumentFragment();
-    [...groups, ''].forEach((g) => {
-      const list = sea.filter((k) => (groups.includes(k.connection) ? k.connection : '') === g)
-        .sort((a, b) => KORDER[kolOf(a)] - KORDER[kolOf(b)] || a.name.localeCompare(b.name));
-      if (!list.length) return;
-      frag.append(el('h4', 'sea-grp', (g || 'Connection not set') + ' · ' + list.length));
-      list.forEach((k) => {
-        const st = kolOf(k);
-        const row = el('div', 'k-row' + (st === 'Turned down' ? ' is-no' : ''));
-        row.id = 'kol-' + k.id;
-        const a = el('div'); a.append(el('div', 'nm', k.name));
-        if (k.instagram) {
-          const ig = el('a', 'sea-ig', '@' + k.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, ''));
-          ig.href = k.instagram; ig.target = '_blank'; ig.rel = 'noopener';
-          a.append(ig);
-        }
-        const kn = notionLink(k.url); if (kn) a.append(kn);
-        const b = el('div', 'act');
-        b.append(el('div', null, [k.country, k.timing].filter(Boolean).join(' · ')), el('div', 'sub', k.profile));
-        row.append(a, b, buttons(KSTATES, st, k.name + ' reply status', (v) => save('kol-' + k.id, {status: v})));
-        if (k.note) { const n = el('div', 'note'); n.append(el('b', null, 'Note'), document.createTextNode(k.note)); row.append(n); }
-        frag.append(row);
+  // One sheet of KOLs. SEA creators are split by 9GAG connection and show their Instagram;
+  // people whose activation is Dropped show crossed out at the bottom.
+  function drawGroup(sheet, kols, ini, sea) {
+    sheet.hidden = !kols.length;
+    if (!kols.length) return;
+    kolSummary(sheet.querySelector('.k-sum'), kols);
+    const actOf = (k) => ini.find((r) => r.id === k.activation_id);
+    const out = (k) => { const a = actOf(k); return !!a && progOf(a) === 'Dropped'; };
+    const order = (a, b) => out(a) - out(b) || KORDER[kolOf(a)] - KORDER[kolOf(b)] || a.name.localeCompare(b.name);
+    const row = (k) => {
+      const st = kolOf(k);
+      const r = el('div', 'k-row' + (st === 'Turned down' || out(k) ? ' is-no' : ''));
+      r.id = 'kol-' + k.id;
+      const a = el('div'); a.append(el('div', 'nm', k.name));
+      if (sea && k.instagram) {
+        const ig = el('a', 'sea-ig', '@' + k.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, ''));
+        ig.href = k.instagram; ig.target = '_blank'; ig.rel = 'noopener';
+        a.append(ig);
+      } else a.append(el('div', 'sub', k.profile));
+      const kn = notionLink(k.url); if (kn) a.append(kn);
+      const b = el('div', 'act');
+      if (sea) b.append(el('div', null, [k.country, k.timing].filter(Boolean).join(' · ')), el('div', 'sub', k.profile));
+      else {
+        b.append(el('div', null, k.activation), el('div', 'sub', k.timing));
+        const act = actOf(k);
+        if (act) { b.style.cursor = 'pointer'; b.title = 'Show this activation'; b.addEventListener('click', () => { S.sel = act.id; if (act.details) S.open.add(act.id); redraw(); const x = document.getElementById('row-' + act.id); if (x) x.scrollIntoView({behavior: 'smooth', block: 'center'}); }); }
+      }
+      r.append(a, b, buttons(KSTATES, st, k.name + ' reply status', (v) => save('kol-' + k.id, {status: v})));
+      if (k.note) { const n = el('div', 'note'); n.append(el('b', null, 'Note'), document.createTextNode(k.note)); r.append(n); }
+      const m = metaOf('kol-' + k.id);
+      if (m.updatedBy) { const w = el('div', 'note g10-note'); const nn = el('span', null, '…'); nn.dataset.uid = m.updatedBy; w.append(document.createTextNode('Set to ' + st + ' by '), nn, document.createTextNode(' · ' + ago(m.updatedAt))); r.append(w); }
+      return r;
+    };
+    const box = sheet.querySelector('.k-list'), frag = document.createDocumentFragment();
+    if (sea) {
+      const subs = ['Connected to 9GAG', 'Not connected yet'];
+      [...subs, ''].forEach((g) => {
+        const list = kols.filter((k) => (subs.includes(k.connection) ? k.connection : '') === g).sort(order);
+        if (!list.length) return;
+        frag.append(el('h4', 'sea-grp', (g || 'Connection not set') + ' · ' + list.length));
+        list.forEach((k) => frag.append(row(k)));
       });
-    });
+    } else kols.slice().sort(order).forEach((k) => frag.append(row(k)));
     box.replaceChildren(frag);
+    fillNames(box);
   }
 
   const tip = el('div', 'g10-tip'); tip.hidden = true;
@@ -593,8 +599,8 @@ dash.calc('status_counts', {
     const off = visible.filter((r) => !inView.includes(r));
     $('#g10-off').textContent = off.length ? 'Not on this view: ' + off.map((r) => r.initiative + ' (' + r.date_label + ')').join(' · ') : '';
     $('#g10-tl-note').textContent = S.view === 'full'
-      ? 'Mid Oct 2026 to Feb 2027 by week. Bars are coloured by status; hover or tap for details, click to open it in the list.'
-      : '28 Nov to 15 Dec 2026 by day: car activation, trial run, handover, media day, VIP visits, grand opening on 6 Dec, Winter Fest road closure and KOL visits.';
+      ? 'Mid Oct 2026 to Feb 2027, by week. Bars are coloured by status. Hover or tap a bar for details, and click it to find it in the list.'
+      : '28 Nov to 15 Dec 2026, by day: from the car tour and shop handover to the grand opening, the Winter Fest road closure and the KOL visits.';
     const labelW = narrow ? Math.min(132, W * 0.4) : Math.min(270, W * 0.3);
     const rowH = narrow ? 24 : 26, headH = 24, top = 44, bottom = 8;
     const lines = [];
@@ -868,11 +874,13 @@ html,body{background:var(--page)}
 .f-fest dd{margin:0}
 /* KOL folder: SEA creators first, on a white sheet */
 .k-h{margin:8px 0 0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--ink)}
-.sea{background:var(--paper);border-radius:14px;padding:clamp(14px,2.5vw,24px);display:grid;gap:10px}
-.sea .k-h{margin:0;color:var(--accent)}
+.k-sheet{background:var(--paper);border-radius:14px;padding:clamp(14px,2.5vw,24px);display:grid;gap:10px}
+.k-sheet .k-h{margin:0;display:flex;align-items:center;gap:10px}
+#kg-sea .k-h{color:var(--accent)}
+.k-tag{font-size:10px;letter-spacing:.1em;padding:2px 8px;border-radius:999px;background:var(--accent);color:#fff}
 .sea-grp{margin:10px 0 0;padding-bottom:4px;font-size:12px;font-weight:700;border-bottom:1px solid rgba(17,17,17,.3)}
 .sea-ig{display:block;font-size:var(--cds-font-size-caption);color:var(--ink);text-underline-offset:3px;margin:2px 0}
-.sea .k-row .pbtn:not([aria-pressed="true"]){box-shadow:inset 0 0 0 1px rgba(17,17,17,.14)}
+.k-sheet .k-row .pbtn:not([aria-pressed="true"]){box-shadow:inset 0 0 0 1px rgba(17,17,17,.14)}
 @media (max-width:720px){.g10-card h2{left:30px;max-width:calc(100% - 50px);padding:14px 22px 9px}}
 </style>
 </body>
