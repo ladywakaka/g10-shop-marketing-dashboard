@@ -186,6 +186,7 @@ def main():
             "country": plain(p, "Country") or "",
             "instagram": plain(p, "Instagram") or "",
             "connection": plain(p, "9GAG Connection") or "",
+            "stage": plain(p, "Stage") or "",
             "url": row.get("url"),
         })
 

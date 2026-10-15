@@ -597,7 +597,16 @@ dash.calc('status_counts', {
         frag.append(el('h4', 'sea-grp', (g || 'Connection not set') + ' · ' + list.length));
         list.forEach((k) => frag.append(row(k)));
       });
-    } else kols.slice().sort(order).forEach((k) => frag.append(row(k)));
+    } else {
+      // People with a Stage set in Notion (e.g. Sustaining) go last, under a heading for that stage
+      const plainKols = kols.filter((k) => !k.stage).sort(order);
+      plainKols.forEach((k) => frag.append(row(k)));
+      [...new Set(kols.map((k) => k.stage).filter(Boolean))].forEach((s) => {
+        const list = kols.filter((k) => k.stage === s).sort(order);
+        frag.append(el('h4', 'sea-grp', s + ' stage · ' + list.length));
+        list.forEach((k) => frag.append(row(k)));
+      });
+    }
     box.replaceChildren(frag);
     fillNames(box);
   }
