@@ -51,7 +51,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
     initiatives: raw.activations.map((r) => Object.assign({}, r, {start_status: r.progress})),
     kols: raw.kols.map((k) => Object.assign({}, k, {start_status: k.status})),
     decisions: raw.decisions,
-    milestones: [{date: '2026-11-25', label: 'Winter Fest lights'}, {date: '2026-12-03', label: 'Shop handover'}, {date: '2026-12-06', label: 'Grand opening'}, {date: '2026-12-11', label: 'Road closure'}, {date: '2027-02-06', label: 'CNY'}],
+    milestones: [{date: '2026-11-25', label: 'Winter Fest lights'}, {date: '2026-12-02', label: 'Trial run'}, {date: '2026-12-03', label: 'Shop handover'}, {date: '2026-12-06', label: 'Grand opening'}, {date: '2026-12-11', label: 'Road closure'}, {date: '2027-02-06', label: 'CNY'}],
   };
   const calcs = {}, draws = [];
   window.dash = {
@@ -189,7 +189,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
 <div class="g10" id="g10">
   <header class="g10-head" id="overview">
     <h1>G10 Shop Marketing Update</h1>
-    <div class="g10-sub">Pak Sha Road, Causeway Bay · Shop handover 3 Dec · Grand opening 6 Dec 2026 (moved from 12 Dec) · From the Retail Launch Deck R5</div>
+    <div class="g10-sub">Pak Sha Road, Causeway Bay · Trial run 2–3 Dec · Shop handover 3 Dec · Grand opening 6 Dec 2026 · From the Retail Launch Deck R5</div>
     <div class="g10-headrow">
       <div class="g10-count" id="g10-countdown"></div>
       <div class="g10-sync" id="g10-sync"><i></i><span>Connecting…</span></div>
@@ -211,7 +211,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
       <li><b>Ride the Lee Gardens Winter Fest.</b> Use the festival hype on our doorstep to draw its crowds to Grade10.</li>
       <li><b>Use the booths outside Grade10.</b> Turn the Winter Fest stalls in front of the shop into foot traffic for us.</li>
       <li><b>Launch before the Winter Fest opens.</b> The grand opening moves to 6 Dec, clear of the Winter Fest opening on 11 Dec in front of Hysan and our shop.</li>
-      <li><b>Move the early dates.</b> The Pokémon car activation now starts 28 Nov, and the media announcement moves to 4 Dec or 8 Dec.</li>
+      <li><b>Move the early dates.</b> Pokémon car 28 Nov to 11 Dec, trial run 2 to 3 Dec, media day and VIP visits from 4 Dec, then global and SEA KOLs 9 to 15 Dec.</li>
     </ol>
     <div class="f-fest">
       <h3>Lee Gardens Winter Fest</h3>
@@ -525,9 +525,10 @@ dash.calc('status_counts', {
     drawSea(sea);
     kolSummary($('#k-sum'), kols);
     const box = $('#k-list');
-    const rows = kols.slice().sort((a, b) => KORDER[kolOf(a)] - KORDER[kolOf(b)]).map((k) => {
+    const out = (k) => { const a = ini.find((r) => r.id === k.activation_id); return !!a && progOf(a) === 'Dropped'; };
+    const rows = kols.slice().sort((a, b) => out(a) - out(b) || KORDER[kolOf(a)] - KORDER[kolOf(b)]).map((k) => {
       const st = kolOf(k);
-      const row = el('div', 'k-row' + (st === 'Turned down' ? ' is-no' : ''));
+      const row = el('div', 'k-row' + (st === 'Turned down' || out(k) ? ' is-no' : ''));
       row.id = 'kol-' + k.id;
       const a = el('div'); a.append(el('div', 'nm', k.name), el('div', 'sub', k.profile));
       const kn = notionLink(k.url); if (kn) a.append(kn);
@@ -571,7 +572,7 @@ dash.calc('status_counts', {
         }
         const kn = notionLink(k.url); if (kn) a.append(kn);
         const b = el('div', 'act');
-        b.append(el('div', null, k.country), el('div', 'sub', k.profile));
+        b.append(el('div', null, [k.country, k.timing].filter(Boolean).join(' · ')), el('div', 'sub', k.profile));
         row.append(a, b, buttons(KSTATES, st, k.name + ' reply status', (v) => save('kol-' + k.id, {status: v})));
         if (k.note) { const n = el('div', 'note'); n.append(el('b', null, 'Note'), document.createTextNode(k.note)); row.append(n); }
         frag.append(row);
@@ -586,14 +587,14 @@ dash.calc('status_counts', {
     const W = Math.max(box.clientWidth || 800, 300);
     const narrow = W < 600;
     const today = todayUTC();
-    const dom = S.view === 'full' ? [new Date(Math.min(+D('2026-10-19'), +today - 4 * DAY)), D('2027-03-01')] : [D('2026-11-28'), D('2026-12-13')];
+    const dom = S.view === 'full' ? [new Date(Math.min(+D('2026-10-19'), +today - 4 * DAY)), D('2027-03-01')] : [D('2026-11-28'), D('2026-12-16')];
     const visible = ini.filter(matches);
     const inView = visible.filter((r) => r.start && r.end && D(r.start) < dom[1] && +D(r.end) + DAY > dom[0]);
     const off = visible.filter((r) => !inView.includes(r));
     $('#g10-off').textContent = off.length ? 'Not on this view: ' + off.map((r) => r.initiative + ' (' + r.date_label + ')').join(' · ') : '';
     $('#g10-tl-note').textContent = S.view === 'full'
       ? 'Mid Oct 2026 to Feb 2027 by week. Bars are coloured by status; hover or tap for details, click to open it in the list.'
-      : '28 Nov to 12 Dec 2026 by day: car activation, handover, media announcement, grand opening on 6 Dec and the Winter Fest road closure.';
+      : '28 Nov to 15 Dec 2026 by day: car activation, trial run, handover, media day, VIP visits, grand opening on 6 Dec, Winter Fest road closure and KOL visits.';
     const labelW = narrow ? Math.min(132, W * 0.4) : Math.min(270, W * 0.3);
     const rowH = narrow ? 24 : 26, headH = 24, top = 44, bottom = 8;
     const lines = [];
