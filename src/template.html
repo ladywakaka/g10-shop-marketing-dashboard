@@ -180,6 +180,28 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
 .struck-note{font-size:var(--cds-font-size-caption);color:var(--color-bad)}
 .g10-edit{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);text-decoration:none;white-space:nowrap;justify-self:start}
 .g10-edit:hover{color:var(--color-fg);text-decoration:underline}
+button.g10-edit{all:unset;cursor:pointer;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);white-space:nowrap}
+button.g10-edit:hover,button.g10-edit:focus-visible{color:var(--color-fg);text-decoration:underline}
+.g10-links{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}
+.g10-cm{border:1px solid var(--color-border-line);border-radius:14px;padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 48px);background:var(--color-panel);color:var(--color-fg)}
+.g10-cm::backdrop{background:rgba(0,0,0,.45)}
+.g10-cm form{display:grid;gap:12px;padding:18px}
+.g10-cm h3{margin:0;font-size:17px;padding-right:32px}
+.g10-cm .x{all:unset;cursor:pointer;position:absolute;top:12px;right:16px;font-size:22px;line-height:1;color:var(--color-fg-muted)}
+.g10-cm .list{display:grid;gap:10px;max-height:40vh;overflow:auto;padding:2px}
+.g10-cm .c{background:var(--color-bg);border-radius:10px;padding:8px 10px;font-size:14px;line-height:1.45}
+.g10-cm .c .h{font-size:12px;color:var(--color-fg-muted);margin-bottom:2px}
+.g10-cm .c .h b{color:var(--color-fg)}
+.g10-cm .c .t{white-space:pre-wrap;overflow-wrap:anywhere}
+.g10-cm .empty,.g10-cm .err{font-size:14px;color:var(--color-fg-muted)}
+.g10-cm .err{color:var(--color-bad)}
+.g10-cm label{display:grid;gap:4px;font-size:12px;color:var(--color-fg-muted)}
+.g10-cm input,.g10-cm textarea{font:inherit;font-size:15px;color:var(--color-fg);background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:8px;padding:8px 10px;box-sizing:border-box;width:100%}
+.g10-cm textarea{min-height:84px;resize:vertical}
+.g10-cm .row{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.g10-cm .send{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:999px;padding:8px 18px;background:var(--color-fg);color:var(--color-bg);cursor:pointer}
+.g10-cm .send:disabled{opacity:.5;cursor:default}
+.g10-cm .hint{font-size:12px;color:var(--color-fg-muted)}
 .g10-empty{padding:var(--cds-pad-lg);color:var(--color-fg-muted);text-align:center;font-size:var(--cds-font-size-caption)}
 .g10-toast{position:sticky;bottom:12px;justify-self:center;background:var(--color-fg);color:var(--color-bg);padding:8px 14px;border-radius:var(--cds-radius);font-size:var(--cds-font-size-caption);z-index:5}
 @media (max-width:720px){.g10-row{grid-template-columns:minmax(0,1fr)}}
@@ -493,6 +515,80 @@ dash.calc('status_counts', {
     const a = el('a', 'g10-edit', 'Edit in Notion ↗'); a.href = url; a.target = '_blank'; a.rel = 'noopener';
     return a;
   }
+  // Team comments: saved as Notion comments on the row through the relay, signed with the writer's name
+  const NAME_KEY = 'g10-comment-name';
+  const getName = () => { try { return localStorage.getItem(NAME_KEY) || ''; } catch (e) { return ''; } };
+  const setName = (v) => { try { localStorage.setItem(NAME_KEY, v); } catch (e) {} };
+  function commentLink(key, title) {
+    if (!RELAY) return null;
+    const b = el('button', 'g10-edit', '💬 Comments'); b.type = 'button';
+    b.title = 'Read and add team comments (saved in Notion)';
+    b.addEventListener('click', () => openComments(key, title));
+    return b;
+  }
+  function withLinks(url, key, title) {
+    const nl = notionLink(url), cl = commentLink(key, title);
+    if (!nl && !cl) return null;
+    const w = el('div', 'g10-links'); if (nl) w.append(nl); if (cl) w.append(cl);
+    return w;
+  }
+  function openComments(key, title) {
+    if (!getPw()) {
+      const pw = window.prompt('Enter the team password to read and add comments:');
+      if (!pw) return;
+      setPw(pw.trim());
+    }
+    const kind = key.slice(0, 3), id = key.slice(4);
+    const dlg = el('dialog', 'g10-cm');
+    const form = el('form'); form.method = 'dialog';
+    const x = el('button', 'x', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Close'); x.addEventListener('click', () => dlg.close());
+    const list = el('div', 'list'); list.setAttribute('aria-live', 'polite');
+    const nameIn = el('input'); nameIn.value = getName(); nameIn.maxLength = 40; nameIn.placeholder = 'e.g. Mandy'; nameIn.autocomplete = 'name';
+    const nameL = el('label', null, 'Your name'); nameL.append(nameIn);
+    const txt = el('textarea'); txt.maxLength = 1800; txt.placeholder = 'Type a remark or update for the team…';
+    const txtL = el('label', null, 'New comment'); txtL.append(txt);
+    const send = el('button', 'send', 'Send'); send.type = 'submit';
+    const foot = el('div', 'row'); foot.append(el('span', 'hint', 'Saved as a comment on this row in Notion.'), send);
+    form.append(el('h3', null, title), list, nameL, txtL, foot);
+    dlg.append(x, form);
+    document.body.append(dlg);
+    dlg.addEventListener('close', () => dlg.remove());
+    const fail = (e) => {
+      if (e.status === 401) { setPw(''); return 'Wrong password. Close this and click 💬 Comments again to retry.'; }
+      return 'Could not reach Notion: ' + e.message;
+    };
+    async function load() {
+      list.replaceChildren(el('div', 'empty', 'Loading comments…'));
+      try {
+        const {comments} = await relay('/comments', {kind, id});
+        if (!comments.length) { list.replaceChildren(el('div', 'empty', 'No comments yet.')); return; }
+        list.replaceChildren(...comments.map((c) => {
+          const d = el('div', 'c'), h = el('div', 'h');
+          h.append(el('b', null, c.name || 'In Notion'), document.createTextNode(' · ' + ago(c.time)));
+          d.append(h, el('div', 't', c.text));
+          return d;
+        }));
+        list.scrollTop = list.scrollHeight;
+      } catch (e) { list.replaceChildren(el('div', 'err', fail(e))); }
+    }
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const name = nameIn.value.trim(), text = txt.value.trim();
+      if (!name) { nameIn.focus(); toast('Add your name first.'); return; }
+      if (!text) { txt.focus(); return; }
+      setName(name);
+      send.disabled = true; send.textContent = 'Sending…';
+      try {
+        await relay('/comment', {kind, id, name, text});
+        txt.value = ''; toast('Comment saved to Notion.');
+        await load();
+      } catch (e) { toast(fail(e)); }
+      finally { send.disabled = false; send.textContent = 'Send'; }
+    });
+    dlg.showModal();
+    (getName() ? txt : nameIn).focus();
+    load();
+  }
   function buttons(states, current, label, onPick) {
     const g = el('div', 'pseg'); g.setAttribute('role', 'group'); g.setAttribute('aria-label', label);
     states.forEach(([k, c]) => {
@@ -592,7 +688,7 @@ dash.calc('status_counts', {
       const linked = ini.filter((r) => r.decision === g.id).map((r) => r.initiative);
       if (linked.length) dl.append(el('dt', null, 'Activations waiting on this'), el('dd', null, linked.join(' · ')));
       c.append(top, item, dl, buttons([['Open', 'c-pe'], ['Confirmed', 'c-fi']], st, g.item + ' status', (v) => save('dec-' + g.id, {status: v})));
-      const gn = notionLink(g.url); if (gn) c.append(gn);
+      const gn = withLinks(g.url, 'dec-' + g.id, g.item); if (gn) c.append(gn);
       const m = metaOf('dec-' + g.id);
       if (m.updatedBy) { const who = el('div', 'g10-note'); const n = el('span', null, '…'); n.dataset.uid = m.updatedBy; who.append(document.createTextNode('Updated by '), n, document.createTextNode(' · ' + ago(m.updatedAt))); c.append(who); }
       return c;
@@ -632,7 +728,7 @@ dash.calc('status_counts', {
         ig.href = k.instagram; ig.target = '_blank'; ig.rel = 'noopener';
         a.append(ig);
       } else a.append(el('div', 'sub', k.profile));
-      const kn = notionLink(k.url); if (kn) a.append(kn);
+      const kn = withLinks(k.url, 'kol-' + k.id, k.name); if (kn) a.append(kn);
       const b = el('div', 'act');
       if (sea) b.append(el('div', null, [k.country, k.timing].filter(Boolean).join(' · ')), el('div', 'sub', k.profile));
       else {
@@ -692,7 +788,7 @@ dash.calc('status_counts', {
       r.id = kind + '-' + a.id;
       const left = el('div'); left.append(el('div', 'nm', a.name));
       if (a.instagram) { const h = el('a', 'sea-ig', a.handle || a.instagram); h.href = a.instagram; h.target = '_blank'; h.rel = 'noopener'; left.append(h); }
-      const kn = notionLink(a.url); if (kn) left.append(kn);
+      const kn = withLinks(a.url, kind + '-' + a.id, a.name); if (kn) left.append(kn);
       const mid = el('div', 'act');
       const top = el('div'); top.append(el('b', 'ig-fol', fmtFollowers(a.followers) + ' followers'), document.createTextNode(a.location ? ' · ' + a.location : ''));
       mid.append(top, el('div', 'sub', (a.categories || []).join(' · ')));
@@ -866,7 +962,7 @@ dash.calc('status_counts', {
         const meta = el('div', 'meta');
         if (r.status === 'Needs decision' && r.decision) meta.append(el('span', 'flag dec', 'Waiting on ' + r.decision));
         else if (r.status === 'Details TBC' || r.status === 'Roadmap only') meta.append(el('span', 'flag', r.status));
-        const nl = notionLink(r.url); if (nl) meta.append(nl);
+        const nl = withLinks(r.url, 'act-' + r.id, r.initiative); if (nl) meta.append(nl);
         if (meta.childNodes.length) a.append(meta);
         const m = metaOf('act-' + r.id);
         if (m.updatedBy) { const w = el('div', 'who'); const n = el('span', null, '…'); n.dataset.uid = m.updatedBy; w.append(document.createTextNode('Set to ' + prog + ' by '), n, document.createTextNode(' · ' + ago(m.updatedAt))); a.append(w); }

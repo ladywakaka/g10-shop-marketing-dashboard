@@ -5,13 +5,16 @@
 // that the status is one the dashboard offers, and updates that one row in Notion.
 //
 // Secrets (Cloudflare > Worker > Settings > Variables and Secrets):
-//   NOTION_TOKEN   the same Notion integration secret the GitHub Action uses (needs "Update content")
+//   NOTION_TOKEN   the same Notion integration secret the GitHub Action uses (needs "Update content",
+//                  "Read comments" and "Insert comments")
 //   TEAM_PASSWORD  the dashboard password
 //
 // Routes:
 //   POST /status    {password, kind, id, value}  -> sets one status
 //   POST /statuses  {password}                   -> current statuses of every row, so the page
 //                                                   shows changes made since its last rebuild
+//   POST /comments  {password, kind, id}         -> the Notion comments on one row
+//   POST /comment   {password, kind, id, name, text} -> adds a comment to that row, signed with the name
 
 const ALLOWED_ORIGIN = 'https://ladywakaka.github.io';
 const NOTION_VERSION = '2022-06-28';
@@ -98,6 +101,34 @@ async function setStatus(env, kind, id, value) {
   return {ok: true};
 }
 
+// Dashboard comments are signed "Name (via dashboard): text" so the author shows in Notion too
+const SIGN = / \(via dashboard\): /;
+
+async function listComments(env, kind, id) {
+  const row = await findRow(env, kind, id);
+  if (!row) return {ok: false, code: 404, error: 'Row not found in Notion'};
+  const out = [];
+  let cursor;
+  do {
+    const page = await notion(env, 'GET', `comments?block_id=${row.id}&page_size=100` + (cursor ? `&start_cursor=${cursor}` : ''));
+    for (const c of page.results) {
+      const full = (c.rich_text || []).map((t) => t.plain_text).join('');
+      const m = full.split(SIGN);
+      out.push(m.length > 1 ? {name: m[0], text: m.slice(1).join(' (via dashboard): '), time: c.created_time} : {name: '', text: full, time: c.created_time});
+    }
+    cursor = page.has_more ? page.next_cursor : null;
+  } while (cursor && out.length < 300);
+  return {ok: true, comments: out};
+}
+
+async function addComment(env, kind, id, name, text) {
+  const row = await findRow(env, kind, id);
+  if (!row) return {ok: false, code: 404, error: 'Row not found in Notion'};
+  const content = `${name} (via dashboard): ${text}`;
+  await notion(env, 'POST', 'comments', {parent: {page_id: row.id}, rich_text: [{type: 'text', text: {content}}]});
+  return {ok: true};
+}
+
 async function allStatuses(env) {
   const out = {};
   await Promise.all(Object.entries(KINDS).map(async ([kind, k]) => {
@@ -129,6 +160,19 @@ export default {
         const {kind, id, value} = body;
         if (!KINDS[kind] || !KINDS[kind].values.includes(value) || !id || String(id).length > 100) return reply(origin, 400, {ok: false, error: 'Unknown status'});
         const r = await setStatus(env, kind, String(id), value);
+        return reply(origin, r.ok ? 200 : r.code, r);
+      }
+      if (path === '/comments' || path === '/comment') {
+        const {kind, id} = body;
+        if (!KINDS[kind] || !id || String(id).length > 100) return reply(origin, 400, {ok: false, error: 'Unknown row'});
+        let r;
+        if (path === '/comments') r = await listComments(env, kind, String(id));
+        else {
+          const name = String(body.name || '').trim().slice(0, 40), text = String(body.text || '').trim();
+          if (!name || !text) return reply(origin, 400, {ok: false, error: 'Name and comment are both needed'});
+          if (text.length > 1800) return reply(origin, 400, {ok: false, error: 'Comment is too long (1,800 characters max)'});
+          r = await addComment(env, kind, String(id), name, text);
+        }
         return reply(origin, r.ok ? 200 : r.code, r);
       }
       return reply(origin, 404, {ok: false, error: 'Not found'});

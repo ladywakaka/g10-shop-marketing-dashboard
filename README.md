@@ -48,7 +48,9 @@ GitHub Pages can't write to Notion by itself, so status clicks go through a smal
 Setup (once):
 
 1. In Cloudflare, create a Worker named `g10-status-relay` and paste in `relay/worker.js`.
-2. In the Worker's Settings > Variables and Secrets, add two secrets: `NOTION_TOKEN` (the same integration secret as in GitHub; the integration needs **Update content**) and `TEAM_PASSWORD` (the dashboard password).
+2. In the Worker's Settings > Variables and Secrets, add two secrets: `NOTION_TOKEN` (the same integration secret as in GitHub; the integration needs **Update content**, **Read comments** and **Insert comments**) and `TEAM_PASSWORD` (the dashboard password).
 3. In this repo's Settings > Secrets and variables > Actions > **Variables**, add `STATUS_RELAY_URL` with the Worker's address (`https://g10-status-relay.<account>.workers.dev`), then run the workflow.
 
 The first time someone clicks a status, the page asks for the team password once and remembers it in that browser. When the dashboard password changes, update `TEAM_PASSWORD` in Cloudflare too.
+
+The relay also powers **💬 Comments** on every activation, KOL, Green Light, IG and 小紅書 row. Team members type a remark on the dashboard and it is saved as a Notion comment on that row, signed "Name (via dashboard): …". The dashboard asks for their name once per browser. After changing `relay/worker.js`, paste it into the Worker again (Edit code > Deploy).
