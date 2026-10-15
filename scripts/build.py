@@ -4,11 +4,14 @@ The output is the unencrypted page. The GitHub Action encrypts it with StatiCryp
 before publishing, so build/ must never be committed or deployed as is.
 """
 import json
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 template = (ROOT / "src" / "template.html").read_text()
 data = json.loads((ROOT / "data" / "launch.json").read_text())
+# Address of the status relay (relay/worker.js); empty means status buttons open Notion instead
+data["relay"] = os.environ.get("STATUS_RELAY_URL", "").strip().rstrip("/")
 
 # Escape "</" so text from Notion can never close the <script> tag that holds the data.
 payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")

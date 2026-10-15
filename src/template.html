@@ -46,6 +46,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
 /* A small stand-in for the Claude dashboard's `dash` helper, fed from the Notion data baked into this page. */
 (function () {
   const raw = JSON.parse(document.getElementById('launch-data').textContent);
+  window.G10_RELAY = raw.relay || '';
   window.G10_UPDATED = new Date(raw.updated).toLocaleString('en-GB', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Hong_Kong'}) + ' HKT';
   const sets = {
     initiatives: raw.activations.map((r) => Object.assign({}, r, {start_status: r.progress})),
@@ -387,6 +388,7 @@ dash.calc('status_counts', {
     try { db = c && c.use ? await c.use('db') : null; } catch (e) { db = null; }
     try { user = c && c.use ? await c.use('user') : null; } catch (e) { user = null; }
     S.db = db; S.user = user;
+    if (!db && RELAY) { setSync('live', 'Live · status buttons save to Notion · refreshed ' + window.G10_UPDATED); loadLive(); redraw(); return; }
     if (!db) { S.canWrite = false; setSync('ro', 'Statuses come from Notion · click a status to open it there · refreshed ' + (window.G10_UPDATED || '')); redraw(); return; }
     if (user) {
       try { S.uid = await user.id(); } catch (e) { S.uid = null; }
@@ -398,8 +400,31 @@ dash.calc('status_counts', {
       redraw();
     }, () => setSync('', 'Lost connection to saved statuses. Reload the page.'));
   }
-  // On the GitHub copy a status click opens that item's row in Notion, where the change is made
+  // On the GitHub copy a status click saves to Notion through the status relay (relay/worker.js).
+  // Without a relay it opens that item's row in Notion, where the change is made.
   const NOTION_MODE = !!window.G10_UPDATED;
+  const RELAY = window.G10_RELAY || '';
+  const PW_KEY = 'g10-relay-password';
+  const getPw = () => { try { return localStorage.getItem(PW_KEY) || ''; } catch (e) { return ''; } };
+  const setPw = (v) => { try { if (v) localStorage.setItem(PW_KEY, v); else localStorage.removeItem(PW_KEY); } catch (e) {} };
+  async function relay(path, body) {
+    const res = await fetch(RELAY + path, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(Object.assign({password: getPw()}, body || {}))});
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) { const e = new Error(data.error || 'Not saved'); e.status = res.status; throw e; }
+    return data;
+  }
+  // Show statuses changed in Notion since this page was built (needs the password, saved after the first change)
+  async function loadLive() {
+    if (!getPw()) return;
+    try {
+      const {statuses} = await relay('/statuses');
+      Object.entries(statuses || {}).forEach(([kind, map]) => Object.entries(map).forEach(([id, v]) => {
+        const key = kind + '-' + id;
+        if (!S.inflight.has(key)) S.store.set(key, kind === 'act' ? {progress: v} : {status: v});
+      }));
+      redraw();
+    } catch (e) { if (e.status === 401) setPw(''); }
+  }
   function notionUrl(key) {
     if (!last) return null;
     const id = key.slice(4), kind = key.slice(0, 3);
@@ -408,6 +433,24 @@ dash.calc('status_counts', {
     return r && r.url;
   }
   async function save(key, fields) {
+    if (!S.db && RELAY) {
+      if (!getPw()) {
+        const pw = window.prompt('Enter the team password to save status changes to Notion:');
+        if (!pw) return;
+        setPw(pw.trim());
+      }
+      const before = S.store.get(key);
+      S.store.set(key, fields); S.inflight.add(key); redraw();
+      try {
+        await relay('/status', {kind: key.slice(0, 3), id: key.slice(4), value: fields.progress || fields.status});
+        toast('Saved to Notion.');
+      } catch (e) {
+        if (before) S.store.set(key, before); else S.store.delete(key);
+        if (e.status === 401) { setPw(''); toast('Wrong password. Click the status again to retry.'); }
+        else toast('Not saved: ' + e.message);
+      } finally { S.inflight.delete(key); redraw(); }
+      return;
+    }
     if (!S.db) {
       const u = NOTION_MODE && notionUrl(key);
       if (u) { window.open(u, '_blank', 'noopener'); toast('Opening this row in Notion. Change the status there.'); }
@@ -456,8 +499,8 @@ dash.calc('status_counts', {
       b.append(el('i', 'dot'), document.createTextNode(k));
       b.setAttribute('aria-pressed', String(current === k));
       b.disabled = !NOTION_MODE && (S.canWrite === false || !S.db);
-      if (NOTION_MODE) b.title = 'Open in Notion to set “' + k + '”';
-      b.addEventListener('click', () => { if (NOTION_MODE || current !== k) onPick(k); });
+      if (NOTION_MODE) b.title = RELAY ? 'Set to “' + k + '” (saves to Notion)' : 'Open in Notion to set “' + k + '”';
+      b.addEventListener('click', () => { if ((NOTION_MODE && !RELAY) || current !== k) onPick(k); });
       g.append(b);
     });
     return g;

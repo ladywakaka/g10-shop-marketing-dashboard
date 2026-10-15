@@ -32,6 +32,8 @@ jobs:
         run: python scripts/fetch_notion.py
 
       - name: Build page
+        env:
+          STATUS_RELAY_URL: ${{ vars.STATUS_RELAY_URL }}
         run: python scripts/build.py
 
       - uses: actions/setup-node@v4
