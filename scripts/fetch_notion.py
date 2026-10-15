@@ -1,7 +1,7 @@
 """Pull the G10 Shop Marketing Dashboard data from Notion into data/launch.json.
 
-Reads three databases under Grade10 / G10 Shop Launch Tracker: Activations, KOL Invitations
-and Green Light Decisions. Each activation's page body (### headings and bullet points) becomes
+Reads four databases under Grade10 / G10 Shop Launch Tracker: Activations, KOL Invitations,
+Green Light Decisions and IG Outreach. Each activation's page body (### headings and bullet points) becomes
 its expandable plan on the dashboard.
 
 Needs NOTION_TOKEN with access to the G10 Shop Launch Tracker page.
@@ -18,6 +18,7 @@ from pathlib import Path
 ACTIVATIONS_DB = os.environ.get("LAUNCH_ACTIVATIONS_DB", "5b09a1ff7932403298c3ba900a810dc4")
 KOLS_DB = os.environ.get("LAUNCH_KOLS_DB", "0b39c31466f6419d98a5042e3bde1399")
 DECISIONS_DB = os.environ.get("LAUNCH_DECISIONS_DB", "64f50abec3f0440c9f42512e82555529")
+IG_DB = os.environ.get("LAUNCH_IG_DB", "ccb74e7b08314c0f9f8d3a722b108669")
 NOTION_VERSION = "2022-06-28"
 OUT = Path(__file__).resolve().parent.parent / "data" / "launch.json"
 
@@ -74,8 +75,10 @@ def plain(props, name):
         return text(v) or None
     if t in ("select", "status"):
         return v.get("name")
-    if t in ("number", "url"):
+    if t in ("number", "url", "email"):
         return v
+    if t == "multi_select":
+        return [o.get("name") for o in v]
     return None
 
 
@@ -205,14 +208,40 @@ def main():
         })
     decisions.sort(key=lambda g: g["n"])
 
+    ig = []
+    for row in query(token, IG_DB):
+        p = row["properties"]
+        name = plain(p, "Account")
+        if not name:
+            continue
+        post, _ = dates(p, "Post Date")
+        ig.append({
+            "id": plain(p, "Key") or row["id"],
+            "name": name,
+            "handle": plain(p, "Handle") or "",
+            "instagram": plain(p, "Instagram") or "",
+            "followers": plain(p, "Followers") or 0,
+            "categories": plain(p, "Categories") or [],
+            "location": plain(p, "Location") or "",
+            "email": plain(p, "Email") or "",
+            "outreach": plain(p, "Outreach") or "To contact",
+            "assets": plain(p, "Assets") or "Not started",
+            "post_date": post,
+            "post_link": plain(p, "Post Link") or "",
+            "note": plain(p, "Note") or "",
+            "url": row.get("url"),
+        })
+    ig.sort(key=lambda a: -(a["followers"] or 0))
+
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({
         "updated": datetime.now(timezone.utc).isoformat(timespec="minutes"),
         "activations": activations,
         "kols": kols,
         "decisions": decisions,
+        "ig": ig,
     }, ensure_ascii=False, indent=1))
-    print(f"Wrote {len(activations)} activations, {len(kols)} KOLs and {len(decisions)} decisions to {OUT}")
+    print(f"Wrote {len(activations)} activations, {len(kols)} KOLs, {len(decisions)} decisions and {len(ig)} IG accounts to {OUT}")
 
 
 if __name__ == "__main__":

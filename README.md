@@ -6,7 +6,7 @@ Live page: https://ladywakaka.github.io/g10-shop-marketing-dashboard/
 
 ## Where the data lives
 
-Notion page **Grade10 › G10 Shop Launch Tracker**, with three databases:
+Notion page **Grade10 › G10 Shop Launch Tracker**, with four databases:
 
 | Database | What the team changes |
 |---|---|
@@ -14,6 +14,7 @@ Notion page **Grade10 › G10 Shop Launch Tracker**, with three databases:
 | **KOL Invitations** | **Reply Status** (TBC, Waiting for reply, Accepted, Turned down) and **Note**. |
 | | **Group** picks the section each person shows in: *SEA Creators*, *Global KOLs* or *HK KOLs*. SEA creators are split by **9GAG Connection** (Connected to 9GAG, Not connected yet) and show their **Country** and **Instagram**. People whose activation is Dropped show crossed out. |
 | **Green Light Decisions** | **Status** (Open, Confirmed) and **Needed By**. |
+| **IG Outreach** | Shortlisted Instagram accounts posting about the launch from 6 Dec: **Outreach** (To contact, Contacted, In talks, Confirmed, Declined), **Assets** (Not started, In progress, Ready, Sent), **Post Date** and **Post Link**. |
 
 - To cross out a name on an activation, write `Name: reason` in its **Crossed Out** field (one per line).
 - Do not change the **Key** fields; they link rows to the page.
@@ -28,7 +29,7 @@ No marketing data is stored in this repository. Only the encrypted page is publi
 ## How it updates
 
 1. A GitHub Action (`.github/workflows/deploy.yml`) runs every day at 02:00 HKT, on every push to `main`, and whenever you click **Run workflow** (Actions tab).
-2. `scripts/fetch_notion.py` pulls the three databases from Notion.
+2. `scripts/fetch_notion.py` pulls the four databases from Notion.
 3. `scripts/build.py` puts the data into `src/template.html`.
 4. [StatiCrypt](https://github.com/robinmoisson/staticrypt) encrypts the page with the team password, and the encrypted page is published to GitHub Pages.
 

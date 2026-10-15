@@ -51,6 +51,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
     initiatives: raw.activations.map((r) => Object.assign({}, r, {start_status: r.progress})),
     kols: raw.kols.map((k) => Object.assign({}, k, {start_status: k.status})),
     decisions: raw.decisions,
+    ig: raw.ig || [],
     milestones: [{date: '2026-11-25', label: 'Winter Fest lights'}, {date: '2026-11-30', label: 'Shop handover'}, {date: '2026-12-02', label: 'Trial run'}, {date: '2026-12-06', label: 'Grand opening'}, {date: '2026-12-11', label: 'Road closure'}, {date: '2027-02-06', label: 'CNY'}],
   };
   const calcs = {}, draws = [];
@@ -273,6 +274,18 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
     </div>
   </section>
 
+  <section class="g10-card" id="ig-outreach">
+    <div>
+      <h2>IG outreach</h2>
+      <div class="g10-note">Shortlisted Instagram accounts to post about the Grade10 shop launch. Reach out to them now and prepare their media assets, so their posts can go live from 6 Dec. Update progress in Notion.</div>
+    </div>
+    <div class="ig-stats" id="ig-stats"></div>
+    <div class="k-sheet">
+      <div class="k-sum" id="ig-sum"></div>
+      <div id="ig-list" data-source="ig"></div>
+    </div>
+  </section>
+
   <section class="g10-card" id="timeline">
     <div class="g10-cardhead">
       <div>
@@ -377,7 +390,7 @@ dash.calc('status_counts', {
   function notionUrl(key) {
     if (!last) return null;
     const id = key.slice(4), kind = key.slice(0, 3);
-    const rows = kind === 'act' ? last.ini : kind === 'dec' ? (last.dec || []) : (last.kols || []);
+    const rows = kind === 'act' ? last.ini : kind === 'dec' ? (last.dec || []) : kind === 'igo' ? (last.ig || []) : (last.kols || []);
     const r = rows.find((x) => x.id === id);
     return r && r.url;
   }
@@ -462,7 +475,8 @@ dash.calc('status_counts', {
     }
     const kl = dash.data('kols');
     if (kl.status === 'error') document.querySelectorAll('.k-list').forEach((b) => b.replaceChildren(el('div', 'g10-fail', 'Failed to load')));
-    last = {ini: ini.data, dec: dec.status === 'ok' ? dec.data : null, ms: ms.status === 'ok' ? ms.data : [], kols: kl.status === 'ok' ? kl.data : null};
+    const ig = dash.data('ig');
+    last = {ini: ini.data, dec: dec.status === 'ok' ? dec.data : null, ms: ms.status === 'ok' ? ms.data : [], kols: kl.status === 'ok' ? kl.data : null, ig: ig.status === 'ok' ? ig.data : null};
     draw(last);
   });
 
@@ -473,6 +487,7 @@ dash.calc('status_counts', {
     drawProgress(d.ini);
     if (d.dec) drawDecisions(d.dec, d.ini); else if (dash.data('decisions').status === 'error') $('#g10-gls').replaceChildren(el('div', 'g10-fail', 'Failed to load'));
     if (d.kols) drawKols(d.kols, d.ini);
+    if (d.ig) drawIg(d.ig);
     drawGantt(d.ini, d.ms);
     drawList(d.ini);
   }
@@ -585,6 +600,49 @@ dash.calc('status_counts', {
     } else kols.slice().sort(order).forEach((k) => frag.append(row(k)));
     box.replaceChildren(frag);
     fillNames(box);
+  }
+
+  // IG outreach: biggest accounts first; outreach buttons open the row in Notion
+  const IGSTATES = [['To contact', 'c-tbc'], ['Contacted', 'c-wait'], ['In talks', 'c-st'], ['Confirmed', 'c-yes'], ['Declined', 'c-no']];
+  const ASSETS = ['Not started', 'In progress', 'Ready', 'Sent'];
+  const igOf = (a) => (S.store.get('igo-' + a.id) || {}).status || a.outreach || 'To contact';
+  const fmtFollowers = (n) => n >= 1e6 ? d3.format('.1f')(n / 1e6) + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'K' : String(n || 0);
+  function drawIg(ig) {
+    const sec = $('#ig-outreach');
+    sec.hidden = !ig.length;
+    if (!ig.length) return;
+    const stats = $('#ig-stats'); stats.replaceChildren();
+    const stat = (n, label) => { const t = el('div', 'g10-tile ig-stat'); t.append(el('span', 'lab', label), el('span', 'num', n)); stats.append(t); };
+    stat(String(ig.length), 'Accounts');
+    stat(fmtFollowers(ig.reduce((t, a) => t + (a.followers || 0), 0)), 'Combined followers');
+    stat(String(ig.filter((a) => igOf(a) === 'Confirmed').length), 'Confirmed');
+    stat(ig.filter((a) => a.assets === 'Ready' || a.assets === 'Sent').length + ' / ' + ig.length, 'Assets ready or sent');
+    stat(String(ig.filter((a) => a.post_link).length), 'Posts live');
+    const sum = $('#ig-sum'); sum.replaceChildren();
+    IGSTATES.forEach(([k, c]) => { const sp = el('span', c); sp.append(el('i', 'dot'), document.createTextNode(k + ' '), el('b', null, String(ig.filter((a) => igOf(a) === k).length))); sum.append(sp); });
+    const rows = ig.slice().sort((a, b) => (igOf(a) === 'Declined') - (igOf(b) === 'Declined') || (b.followers || 0) - (a.followers || 0)).map((a) => {
+      const st = igOf(a);
+      const r = el('div', 'k-row ig-row' + (st === 'Declined' ? ' is-no' : ''));
+      r.id = 'igo-' + a.id;
+      const left = el('div'); left.append(el('div', 'nm', a.name));
+      if (a.instagram) { const h = el('a', 'sea-ig', a.handle || a.instagram); h.href = a.instagram; h.target = '_blank'; h.rel = 'noopener'; left.append(h); }
+      const kn = notionLink(a.url); if (kn) left.append(kn);
+      const mid = el('div', 'act');
+      const top = el('div'); top.append(el('b', 'ig-fol', fmtFollowers(a.followers) + ' followers'), document.createTextNode(a.location ? ' · ' + a.location : ''));
+      mid.append(top, el('div', 'sub', (a.categories || []).join(' · ')));
+      if (a.email) { const m = el('a', 'ig-mail', a.email); m.href = 'mailto:' + a.email; mid.append(m); }
+      r.append(left, mid, buttons(IGSTATES, st, a.name + ' outreach status', (v) => save('igo-' + a.id, {status: v})));
+      const foot = el('div', 'note ig-foot');
+      const as = el('span', 'ig-asset a' + ASSETS.indexOf(a.assets)); as.textContent = 'Assets: ' + a.assets;
+      foot.append(as);
+      const when = el('span', null, 'Post: ' + (a.post_date ? fmtDay(D(a.post_date)) : 'from 6 Dec, date TBC'));
+      foot.append(when);
+      if (a.post_link) { const pl = el('a', 'g10-edit', 'View post ↗'); pl.href = a.post_link; pl.target = '_blank'; pl.rel = 'noopener'; foot.append(pl); }
+      if (a.note) foot.append(el('span', 'ig-note', a.note));
+      r.append(foot);
+      return r;
+    });
+    $('#ig-list').replaceChildren(...rows);
   }
 
   const tip = el('div', 'g10-tip'); tip.hidden = true;
@@ -814,6 +872,7 @@ html,body{background:var(--page)}
 #green-lights{--folder:var(--black);--folder-ink:#fff;--tab-x:36%}
 #kols{--folder:var(--light);--tab-x:62%}
 #timeline{--folder:var(--black);--folder-ink:#fff;--tab-x:18%}
+#ig-outreach{--folder:var(--light);--tab-x:40%}
 #activations{--folder:var(--light);--tab-x:46%}
 /* status colours kept inside the palette: greens for progress, ink for what needs attention */
 .g10{--s-ns:#d6d6d6;--s-st:var(--accent-soft);--s-pe:var(--grey-dark);--s-fi:var(--accent);--s-dr:#ececec}
@@ -877,6 +936,17 @@ html,body{background:var(--page)}
 .k-sheet{background:var(--paper);border-radius:14px;padding:clamp(14px,2.5vw,24px);display:grid;gap:10px}
 .k-sheet .k-h{margin:0;display:flex;align-items:center;gap:10px}
 #kg-sea .k-h{color:var(--accent)}
+.pbtn.c-tbc[aria-pressed="true"]{color:var(--ink)}
+.ig-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr));gap:var(--cds-gap-sm)}
+.ig-stat{cursor:default}
+.ig-stat .num{font-size:30px}
+.ig-fol{font-weight:700}
+.ig-mail{display:block;font-size:var(--cds-font-size-caption);color:var(--ink);text-underline-offset:3px;margin-top:2px;word-break:break-all}
+.ig-foot{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.ig-asset{padding:1px 9px;border-radius:999px;border:1px solid rgba(17,17,17,.25);font-weight:500}
+.ig-asset.a1{background:var(--accent-soft);border-color:var(--accent)}
+.ig-asset.a2,.ig-asset.a3{background:var(--accent);border-color:var(--accent);color:#fff}
+.ig-note{color:rgba(17,17,17,.7)}
 .k-tag{font-size:10px;letter-spacing:.1em;padding:2px 8px;border-radius:999px;background:var(--accent);color:#fff}
 .sea-grp{margin:10px 0 0;padding-bottom:4px;font-size:12px;font-weight:700;border-bottom:1px solid rgba(17,17,17,.3)}
 .sea-ig{display:block;font-size:var(--cds-font-size-caption);color:var(--ink);text-underline-offset:3px;margin:2px 0}
