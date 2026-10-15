@@ -51,7 +51,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
     initiatives: raw.activations.map((r) => Object.assign({}, r, {start_status: r.progress})),
     kols: raw.kols.map((k) => Object.assign({}, k, {start_status: k.status})),
     decisions: raw.decisions,
-    milestones: [{date: '2026-11-25', label: 'Winter Fest lights'}, {date: '2026-12-03', label: 'Shop handover'}, {date: '2026-12-06', label: 'Trial run'}, {date: '2026-12-11', label: 'Road closure'}, {date: '2026-12-12', label: 'Grand opening'}, {date: '2027-02-06', label: 'CNY'}],
+    milestones: [{date: '2026-11-25', label: 'Winter Fest lights'}, {date: '2026-12-03', label: 'Shop handover'}, {date: '2026-12-06', label: 'Grand opening'}, {date: '2026-12-11', label: 'Road closure'}, {date: '2027-02-06', label: 'CNY'}],
   };
   const calcs = {}, draws = [];
   window.dash = {
@@ -189,7 +189,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
 <div class="g10" id="g10">
   <header class="g10-head" id="overview">
     <h1>G10 Shop Marketing Update</h1>
-    <div class="g10-sub">Pak Sha Road, Causeway Bay · Shop handover 3 Dec · Trial run 6 Dec · Grand opening 12 Dec 2026 (proposed move to 6 or 10 Dec) · From the Retail Launch Deck R5</div>
+    <div class="g10-sub">Pak Sha Road, Causeway Bay · Shop handover 3 Dec · Grand opening 6 Dec 2026 (moved from 12 Dec) · From the Retail Launch Deck R5</div>
     <div class="g10-headrow">
       <div class="g10-count" id="g10-countdown"></div>
       <div class="g10-sync" id="g10-sync"><i></i><span>Connecting…</span></div>
@@ -210,7 +210,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
       <li><b>Capture SEA and Mainland Chinese tourists.</b> Bring both into the shop, with the SEA creators below and China KOL visits on WeChat and XHS.</li>
       <li><b>Ride the Lee Gardens Winter Fest.</b> Use the festival hype on our doorstep to draw its crowds to Grade10.</li>
       <li><b>Use the booths outside Grade10.</b> Turn the Winter Fest stalls in front of the shop into foot traffic for us.</li>
-      <li><b>Launch before the Winter Fest opens.</b> Bring the launch forward to 6 Dec or 10 Dec, so it doesn't clash with the Winter Fest opening on 11 Dec in front of Hysan and our shop.</li>
+      <li><b>Launch before the Winter Fest opens.</b> The grand opening moves to 6 Dec, clear of the Winter Fest opening on 11 Dec in front of Hysan and our shop.</li>
       <li><b>Move the early dates.</b> The Pokémon car activation now starts 28 Nov, and the media announcement moves to 4 Dec or 8 Dec.</li>
     </ol>
     <div class="f-fest">
@@ -308,7 +308,7 @@ dash.calc('status_counts', {
   const PHASES = ['Pre-launch', 'Launch', 'Post-launch', 'Sustaining'];
   const STATES = [{k: 'Not started', c: 'c-ns'}, {k: 'Started', c: 'c-st'}, {k: 'Pending', c: 'c-pe'}, {k: 'Finished', c: 'c-fi'}, {k: 'Dropped', c: 'c-dr'}];
   const CLS = Object.fromEntries(STATES.map((s) => [s.k, s.c]));
-  const OPENING = Date.UTC(2026, 11, 12);
+  const OPENING = Date.UTC(2026, 11, 6);
   const D = (s) => new Date(s + 'T00:00:00Z');
   const todayUTC = () => { const n = new Date(); return new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())); };
   const fmtDay = d3.utcFormat('%-d %b');
@@ -324,7 +324,7 @@ dash.calc('status_counts', {
   const days = Math.round((OPENING - todayUTC()) / DAY);
   if (days > 0) cd.replaceChildren(el('strong', null, String(days)), document.createTextNode(days === 1 ? 'day to grand opening' : 'days to grand opening'));
   else if (days === 0) cd.replaceChildren(el('strong', null, 'Today'), document.createTextNode('is grand opening'));
-  else cd.textContent = 'Opened 12 Dec 2026';
+  else cd.textContent = 'Opened 6 Dec 2026';
 
   // legend + phase buttons
   const lg = $('#g10-legend');
@@ -593,7 +593,7 @@ dash.calc('status_counts', {
     $('#g10-off').textContent = off.length ? 'Not on this view: ' + off.map((r) => r.initiative + ' (' + r.date_label + ')').join(' · ') : '';
     $('#g10-tl-note').textContent = S.view === 'full'
       ? 'Mid Oct 2026 to Feb 2027 by week. Bars are coloured by status; hover or tap for details, click to open it in the list.'
-      : '28 Nov to 12 Dec 2026 by day: car activation, media announcement, handover, trial run, Winter Fest road closure and opening.';
+      : '28 Nov to 12 Dec 2026 by day: car activation, handover, media announcement, grand opening on 6 Dec and the Winter Fest road closure.';
     const labelW = narrow ? Math.min(132, W * 0.4) : Math.min(270, W * 0.3);
     const rowH = narrow ? 24 : 26, headH = 24, top = 44, bottom = 8;
     const lines = [];

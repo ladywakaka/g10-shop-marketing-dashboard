@@ -1,6 +1,6 @@
 # G10 Shop Marketing Update
 
-A password-protected dashboard of the marketing and PR plan for the Grade10 shop on Pak Sha Road, Causeway Bay (trial run 6 Dec, grand opening 12 Dec 2026): activation progress, Green Light decisions, KOL invitations and the campaign timeline.
+A password-protected dashboard of the marketing and PR plan for the Grade10 shop on Pak Sha Road, Causeway Bay (grand opening 6 Dec 2026, moved from 12 Dec): activation progress, Green Light decisions, KOL invitations and the campaign timeline.
 
 Live page: https://ladywakaka.github.io/g10-shop-marketing-dashboard/
 
