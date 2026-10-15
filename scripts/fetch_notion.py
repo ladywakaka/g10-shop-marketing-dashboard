@@ -1,7 +1,7 @@
 """Pull the G10 Shop Marketing Dashboard data from Notion into data/launch.json.
 
-Reads four databases under Grade10 / G10 Shop Launch Tracker: Activations, KOL Invitations,
-Green Light Decisions and IG Outreach. Each activation's page body (### headings and bullet points) becomes
+Reads five databases under Grade10 / G10 Shop Launch Tracker: Activations, KOL Invitations,
+Green Light Decisions, IG Outreach and 小紅書 Outreach. Each activation's page body (### headings and bullet points) becomes
 its expandable plan on the dashboard.
 
 Needs NOTION_TOKEN with access to the G10 Shop Launch Tracker page.
@@ -19,6 +19,7 @@ ACTIVATIONS_DB = os.environ.get("LAUNCH_ACTIVATIONS_DB", "5b09a1ff7932403298c3ba
 KOLS_DB = os.environ.get("LAUNCH_KOLS_DB", "0b39c31466f6419d98a5042e3bde1399")
 DECISIONS_DB = os.environ.get("LAUNCH_DECISIONS_DB", "64f50abec3f0440c9f42512e82555529")
 IG_DB = os.environ.get("LAUNCH_IG_DB", "ccb74e7b08314c0f9f8d3a722b108669")
+XHS_DB = os.environ.get("LAUNCH_XHS_DB", "4e40da92f23a4b7db466d4730867046c")
 NOTION_VERSION = "2022-06-28"
 OUT = Path(__file__).resolve().parent.parent / "data" / "launch.json"
 
@@ -234,6 +235,32 @@ def main():
         })
     ig.sort(key=lambda a: -(a["followers"] or 0))
 
+    # 小紅書 rows use the same shape as IG rows so the page draws both lists the same way
+    xhs = []
+    for row in query(token, XHS_DB):
+        p = row["properties"]
+        name = plain(p, "Account")
+        if not name:
+            continue
+        post, _ = dates(p, "Post Date")
+        xhs.append({
+            "id": plain(p, "Key") or row["id"],
+            "name": name,
+            "handle": "小紅書 profile ↗",
+            "instagram": plain(p, "Profile Link") or "",
+            "followers": plain(p, "Followers") or 0,
+            "categories": [c for c in (plain(p, "Type"), plain(p, "Profile")) if c],
+            "location": "",
+            "email": "",
+            "outreach": plain(p, "Outreach") or "To contact",
+            "assets": plain(p, "Assets") or "Not started",
+            "post_date": post,
+            "post_link": plain(p, "Post Link") or "",
+            "note": plain(p, "Note") or "",
+            "url": row.get("url"),
+        })
+    xhs.sort(key=lambda a: -(a["followers"] or 0))
+
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({
         "updated": datetime.now(timezone.utc).isoformat(timespec="minutes"),
@@ -241,8 +268,9 @@ def main():
         "kols": kols,
         "decisions": decisions,
         "ig": ig,
+        "xhs": xhs,
     }, ensure_ascii=False, indent=1))
-    print(f"Wrote {len(activations)} activations, {len(kols)} KOLs, {len(decisions)} decisions and {len(ig)} IG accounts to {OUT}")
+    print(f"Wrote {len(activations)} activations, {len(kols)} KOLs, {len(decisions)} decisions, {len(ig)} IG accounts and {len(xhs)} 小紅書 accounts to {OUT}")
 
 
 if __name__ == "__main__":

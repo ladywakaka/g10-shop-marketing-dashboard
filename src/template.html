@@ -52,6 +52,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
     kols: raw.kols.map((k) => Object.assign({}, k, {start_status: k.status})),
     decisions: raw.decisions,
     ig: raw.ig || [],
+    xhs: raw.xhs || [],
     milestones: [{date: '2026-11-25', label: 'Winter Fest lights'}, {date: '2026-11-30', label: 'Shop handover'}, {date: '2026-12-02', label: 'Trial run'}, {date: '2026-12-06', label: 'Grand opening'}, {date: '2026-12-11', label: 'Road closure'}, {date: '2027-02-06', label: 'CNY'}],
   };
   const calcs = {}, draws = [];
@@ -266,15 +267,9 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
       <div class="k-sum"></div>
       <div class="k-list" data-source="kols"></div>
     </div>
-    <div class="k-sheet" id="kg-xhs" data-keep>
-      <h3 class="k-h">小紅書 KOLs and social media pages</h3>
-      <div class="g10-note">To reach Mainland Chinese visitors. The invitation list will be added here.</div>
-      <div class="k-sum"></div>
-      <div class="k-list" data-source="kols"></div>
-    </div>
     <div class="k-sheet" id="kg-other" hidden>
       <h3 class="k-h">Not grouped yet</h3>
-      <div class="g10-note">Set their Group in Notion to SEA Creators, Global KOLs, HK KOLs or 小紅書 KOLs / Pages.</div>
+      <div class="g10-note">Set their Group in Notion to SEA Creators, Global KOLs or HK KOLs.</div>
       <div class="k-sum"></div>
       <div class="k-list" data-source="kols"></div>
     </div>
@@ -285,10 +280,22 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
       <h2>IG outreach</h2>
       <div class="g10-note">Shortlisted Instagram accounts to post about the Grade10 shop launch. Reach out to them now and prepare their media assets, so their posts can go live from 6 Dec. Update progress in Notion.</div>
     </div>
-    <div class="ig-stats" id="ig-stats"></div>
+    <div class="ig-stats"></div>
     <div class="k-sheet">
-      <div class="k-sum" id="ig-sum"></div>
-      <div id="ig-list" data-source="ig"></div>
+      <div class="k-sum"></div>
+      <div class="ig-list" data-source="ig"></div>
+    </div>
+  </section>
+
+  <section class="g10-card" id="xhs-outreach" data-keep>
+    <div>
+      <h2>小紅書 list</h2>
+      <div class="g10-note">小紅書 (Xiaohongshu) KOLs and social media pages we will reach out to, to bring Mainland Chinese visitors to the shop. Add each account to 小紅書 Outreach in Notion and update its status there.</div>
+    </div>
+    <div class="ig-stats"></div>
+    <div class="k-sheet">
+      <div class="k-sum"></div>
+      <div class="ig-list" data-source="xhs"></div>
     </div>
   </section>
 
@@ -396,7 +403,7 @@ dash.calc('status_counts', {
   function notionUrl(key) {
     if (!last) return null;
     const id = key.slice(4), kind = key.slice(0, 3);
-    const rows = kind === 'act' ? last.ini : kind === 'dec' ? (last.dec || []) : kind === 'igo' ? (last.ig || []) : (last.kols || []);
+    const rows = kind === 'act' ? last.ini : kind === 'dec' ? (last.dec || []) : kind === 'igo' ? (last.ig || []) : kind === 'xhs' ? (last.xhs || []) : (last.kols || []);
     const r = rows.find((x) => x.id === id);
     return r && r.url;
   }
@@ -481,8 +488,8 @@ dash.calc('status_counts', {
     }
     const kl = dash.data('kols');
     if (kl.status === 'error') document.querySelectorAll('.k-list').forEach((b) => b.replaceChildren(el('div', 'g10-fail', 'Failed to load')));
-    const ig = dash.data('ig');
-    last = {ini: ini.data, dec: dec.status === 'ok' ? dec.data : null, ms: ms.status === 'ok' ? ms.data : [], kols: kl.status === 'ok' ? kl.data : null, ig: ig.status === 'ok' ? ig.data : null};
+    const ig = dash.data('ig'), xhs = dash.data('xhs');
+    last = {ini: ini.data, dec: dec.status === 'ok' ? dec.data : null, ms: ms.status === 'ok' ? ms.data : [], kols: kl.status === 'ok' ? kl.data : null, ig: ig.status === 'ok' ? ig.data : null, xhs: xhs.status === 'ok' ? xhs.data : null};
     draw(last);
   });
 
@@ -493,7 +500,8 @@ dash.calc('status_counts', {
     drawProgress(d.ini);
     if (d.dec) drawDecisions(d.dec, d.ini); else if (dash.data('decisions').status === 'error') $('#g10-gls').replaceChildren(el('div', 'g10-fail', 'Failed to load'));
     if (d.kols) drawKols(d.kols, d.ini);
-    if (d.ig) drawIg(d.ig);
+    if (d.ig) drawOutreach(d.ig, 'igo', $('#ig-outreach'));
+    if (d.xhs) drawOutreach(d.xhs, 'xhs', $('#xhs-outreach'));
     drawGantt(d.ini, d.ms);
     drawList(d.ini);
   }
@@ -550,7 +558,7 @@ dash.calc('status_counts', {
   }
 
   const KORDER = {'Accepted': 0, 'Waiting for reply': 1, 'TBC': 2, 'Turned down': 3};
-  const KGROUPS = [['SEA Creators', '#kg-sea'], ['Global KOLs', '#kg-global'], ['HK KOLs', '#kg-hk'], ['小紅書 KOLs / Pages', '#kg-xhs']];
+  const KGROUPS = [['SEA Creators', '#kg-sea'], ['Global KOLs', '#kg-global'], ['HK KOLs', '#kg-hk']];
   function kolSummary(box, kols) {
     box.replaceChildren();
     KSTATES.forEach(([k, c]) => { const n = kols.filter((r) => kolOf(r) === k).length; const sp = el('span', c); sp.append(el('i', 'dot'), document.createTextNode(k + ' '), el('b', null, String(n))); box.append(sp); });
@@ -564,13 +572,8 @@ dash.calc('status_counts', {
   // One sheet of KOLs. SEA creators are split by 9GAG connection and show their Instagram;
   // people whose activation is Dropped show crossed out at the bottom.
   function drawGroup(sheet, kols, ini, sea) {
-    // A sheet marked data-keep stays visible while its list is still empty
-    sheet.hidden = !kols.length && !('keep' in sheet.dataset);
-    if (!kols.length) {
-      sheet.querySelector('.k-sum').replaceChildren();
-      sheet.querySelector('.k-list').replaceChildren(el('div', 'g10-empty', 'No names yet. Add them to KOL Invitations in Notion with Group set to 小紅書 KOLs / Pages.'));
-      return;
-    }
+    sheet.hidden = !kols.length;
+    if (!kols.length) return;
     kolSummary(sheet.querySelector('.k-sum'), kols);
     const actOf = (k) => ini.find((r) => r.id === k.activation_id);
     const out = (k) => { const a = actOf(k); return !!a && progOf(a) === 'Dropped'; };
@@ -622,28 +625,27 @@ dash.calc('status_counts', {
     fillNames(box);
   }
 
-  // IG outreach: biggest accounts first; outreach buttons open the row in Notion
+  // Outreach lists (IG and 小紅書): biggest accounts first; outreach buttons open the row in Notion
   const IGSTATES = [['To contact', 'c-tbc'], ['Contacted', 'c-wait'], ['In talks', 'c-st'], ['Confirmed', 'c-yes'], ['Declined', 'c-no']];
   const ASSETS = ['Not started', 'In progress', 'Ready', 'Sent'];
-  const igOf = (a) => (S.store.get('igo-' + a.id) || {}).status || a.outreach || 'To contact';
   const fmtFollowers = (n) => n >= 1e6 ? d3.format('.1f')(n / 1e6) + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'K' : String(n || 0);
-  function drawIg(ig) {
-    const sec = $('#ig-outreach');
-    sec.hidden = !ig.length;
-    if (!ig.length) return;
-    const stats = $('#ig-stats'); stats.replaceChildren();
+  function drawOutreach(ig, kind, sec) {
+    const igOf = (a) => (S.store.get(kind + '-' + a.id) || {}).status || a.outreach || 'To contact';
+    // A folder marked data-keep stays visible while its list is still empty
+    sec.hidden = !ig.length && !('keep' in sec.dataset);
+    const stats = sec.querySelector('.ig-stats'); stats.replaceChildren();
     const stat = (n, label) => { const t = el('div', 'g10-tile ig-stat'); t.append(el('span', 'lab', label), el('span', 'num', n)); stats.append(t); };
     stat(String(ig.length), 'Accounts');
     stat(fmtFollowers(ig.reduce((t, a) => t + (a.followers || 0), 0)), 'Combined followers');
     stat(String(ig.filter((a) => igOf(a) === 'Confirmed').length), 'Confirmed');
     stat(ig.filter((a) => a.assets === 'Ready' || a.assets === 'Sent').length + ' / ' + ig.length, 'Assets ready or sent');
     stat(String(ig.filter((a) => a.post_link).length), 'Posts live');
-    const sum = $('#ig-sum'); sum.replaceChildren();
+    const sum = sec.querySelector('.k-sum'); sum.replaceChildren();
     IGSTATES.forEach(([k, c]) => { const sp = el('span', c); sp.append(el('i', 'dot'), document.createTextNode(k + ' '), el('b', null, String(ig.filter((a) => igOf(a) === k).length))); sum.append(sp); });
     const rows = ig.slice().sort((a, b) => (igOf(a) === 'Declined') - (igOf(b) === 'Declined') || (b.followers || 0) - (a.followers || 0)).map((a) => {
       const st = igOf(a);
       const r = el('div', 'k-row ig-row' + (st === 'Declined' ? ' is-no' : ''));
-      r.id = 'igo-' + a.id;
+      r.id = kind + '-' + a.id;
       const left = el('div'); left.append(el('div', 'nm', a.name));
       if (a.instagram) { const h = el('a', 'sea-ig', a.handle || a.instagram); h.href = a.instagram; h.target = '_blank'; h.rel = 'noopener'; left.append(h); }
       const kn = notionLink(a.url); if (kn) left.append(kn);
@@ -651,7 +653,7 @@ dash.calc('status_counts', {
       const top = el('div'); top.append(el('b', 'ig-fol', fmtFollowers(a.followers) + ' followers'), document.createTextNode(a.location ? ' · ' + a.location : ''));
       mid.append(top, el('div', 'sub', (a.categories || []).join(' · ')));
       if (a.email) { const m = el('a', 'ig-mail', a.email); m.href = 'mailto:' + a.email; mid.append(m); }
-      r.append(left, mid, buttons(IGSTATES, st, a.name + ' outreach status', (v) => save('igo-' + a.id, {status: v})));
+      r.append(left, mid, buttons(IGSTATES, st, a.name + ' outreach status', (v) => save(kind + '-' + a.id, {status: v})));
       const foot = el('div', 'note ig-foot');
       const as = el('span', 'ig-asset a' + ASSETS.indexOf(a.assets)); as.textContent = 'Assets: ' + a.assets;
       foot.append(as);
@@ -662,7 +664,9 @@ dash.calc('status_counts', {
       r.append(foot);
       return r;
     });
-    $('#ig-list').replaceChildren(...rows);
+    const list = sec.querySelector('.ig-list');
+    if (rows.length) list.replaceChildren(...rows);
+    else list.replaceChildren(el('div', 'g10-empty', 'No accounts yet. Add them in Notion and they will show here.'));
   }
 
   const tip = el('div', 'g10-tip'); tip.hidden = true;
@@ -893,6 +897,7 @@ html,body{background:var(--page)}
 #kols{--folder:var(--light);--tab-x:62%}
 #timeline{--folder:var(--black);--folder-ink:#fff;--tab-x:18%}
 #ig-outreach{--folder:var(--light);--tab-x:40%}
+#xhs-outreach{--folder:var(--black);--folder-ink:#fff;--tab-x:58%}
 #activations{--folder:var(--light);--tab-x:46%}
 /* status colours kept inside the palette: greens for progress, ink for what needs attention */
 .g10{--s-ns:#d6d6d6;--s-st:var(--accent-soft);--s-pe:var(--grey-dark);--s-fi:var(--accent);--s-dr:#ececec}
