@@ -208,7 +208,7 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
       <div class="g10-note">Our priorities for the launch.</div>
     </div>
     <ol class="f-list">
-      <li><b>Win SEA and Mainland Chinese tourists.</b> Bring them into the shop through our SEA creators and China KOL visits on WeChat and Xiaohongshu.</li>
+      <li><b>Win SEA and Mainland Chinese tourists.</b> Bring them into the shop through our SEA creators, and through 小紅書 (Xiaohongshu) KOLs and social media pages.</li>
       <li><b>Ride the Lee Gardens Winter Fest.</b> Turn the festival buzz on our doorstep into visits to Grade10.</li>
       <li><b>Make the most of the booths outside our door.</b> Use the Winter Fest stalls in front of the shop to steer foot traffic inside.</li>
       <li><b>Open before the Winter Fest.</b> The grand opening is now 6 Dec, so it doesn't clash with the Winter Fest opening on 11 Dec in front of Hysan Place and our shop.</li>
@@ -266,9 +266,15 @@ body{font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
       <div class="k-sum"></div>
       <div class="k-list" data-source="kols"></div>
     </div>
+    <div class="k-sheet" id="kg-xhs" data-keep>
+      <h3 class="k-h">小紅書 KOLs and social media pages</h3>
+      <div class="g10-note">To reach Mainland Chinese visitors. The invitation list will be added here.</div>
+      <div class="k-sum"></div>
+      <div class="k-list" data-source="kols"></div>
+    </div>
     <div class="k-sheet" id="kg-other" hidden>
       <h3 class="k-h">Not grouped yet</h3>
-      <div class="g10-note">Set their Group in Notion to SEA Creators, Global KOLs or HK KOLs.</div>
+      <div class="g10-note">Set their Group in Notion to SEA Creators, Global KOLs, HK KOLs or 小紅書 KOLs / Pages.</div>
       <div class="k-sum"></div>
       <div class="k-list" data-source="kols"></div>
     </div>
@@ -544,7 +550,7 @@ dash.calc('status_counts', {
   }
 
   const KORDER = {'Accepted': 0, 'Waiting for reply': 1, 'TBC': 2, 'Turned down': 3};
-  const KGROUPS = [['SEA Creators', '#kg-sea'], ['Global KOLs', '#kg-global'], ['HK KOLs', '#kg-hk']];
+  const KGROUPS = [['SEA Creators', '#kg-sea'], ['Global KOLs', '#kg-global'], ['HK KOLs', '#kg-hk'], ['小紅書 KOLs / Pages', '#kg-xhs']];
   function kolSummary(box, kols) {
     box.replaceChildren();
     KSTATES.forEach(([k, c]) => { const n = kols.filter((r) => kolOf(r) === k).length; const sp = el('span', c); sp.append(el('i', 'dot'), document.createTextNode(k + ' '), el('b', null, String(n))); box.append(sp); });
@@ -558,8 +564,13 @@ dash.calc('status_counts', {
   // One sheet of KOLs. SEA creators are split by 9GAG connection and show their Instagram;
   // people whose activation is Dropped show crossed out at the bottom.
   function drawGroup(sheet, kols, ini, sea) {
-    sheet.hidden = !kols.length;
-    if (!kols.length) return;
+    // A sheet marked data-keep stays visible while its list is still empty
+    sheet.hidden = !kols.length && !('keep' in sheet.dataset);
+    if (!kols.length) {
+      sheet.querySelector('.k-sum').replaceChildren();
+      sheet.querySelector('.k-list').replaceChildren(el('div', 'g10-empty', 'No names yet. Add them to KOL Invitations in Notion with Group set to 小紅書 KOLs / Pages.'));
+      return;
+    }
     kolSummary(sheet.querySelector('.k-sum'), kols);
     const actOf = (k) => ini.find((r) => r.id === k.activation_id);
     const out = (k) => { const a = actOf(k); return !!a && progOf(a) === 'Dropped'; };

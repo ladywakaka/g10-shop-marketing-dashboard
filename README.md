@@ -12,7 +12,7 @@ Notion page **Grade10 › G10 Shop Launch Tracker**, with four databases:
 |---|---|
 | **Activations** | **Status** (Not started, Started, Pending, Finished, Dropped), **Open Items**, dates. The plan from the deck is in each row's page and shows as the ▶ details. |
 | **KOL Invitations** | **Reply Status** (TBC, Waiting for reply, Accepted, Turned down) and **Note**. |
-| | **Group** picks the section each person shows in: *SEA Creators*, *Global KOLs* or *HK KOLs*. SEA creators are split by **9GAG Connection** (Connected to 9GAG, Not connected yet) and show their **Country** and **Instagram**. People whose activation is Dropped show crossed out. |
+| | **Group** picks the section each person shows in: *SEA Creators*, *Global KOLs*, *HK KOLs* or *小紅書 KOLs / Pages* (this section shows even while it is empty). SEA creators are split by **9GAG Connection** (Connected to 9GAG, Not connected yet) and show their **Country** and **Instagram**. People whose activation is Dropped show crossed out. |
 | **Green Light Decisions** | **Status** (Open, Confirmed) and **Needed By**. |
 | **IG Outreach** | Shortlisted Instagram accounts posting about the launch from 6 Dec: **Outreach** (To contact, Contacted, In talks, Confirmed, Declined), **Assets** (Not started, In progress, Ready, Sent), **Post Date** and **Post Link**. |
 
