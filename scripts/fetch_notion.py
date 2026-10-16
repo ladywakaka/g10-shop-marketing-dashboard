@@ -163,6 +163,7 @@ def main():
             "decision": plain(p, "Decision") or "",
             "open_items": plain(p, "Open Items") or "",
             "kind": plain(p, "Kind") or ("span" if start else "unscheduled"),
+            "after": plain(p, "Timeline After") or "",
             "struck": struck(plain(p, "Crossed Out")),
             "details": d if (d["sections"] or d["intro"]) else None,
             "url": row.get("url"),

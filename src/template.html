@@ -607,6 +607,13 @@ dash.calc('status_counts', {
     && (S.phase === 'All' || r.phase === S.phase)
     && (!S.q || [r.initiative, r.phase, r.date_label, progOf(r), r.status, r.decision, r.open_items, r.details ? JSON.stringify(r.details) : ''].join(' ').toLowerCase().includes(S.q));
   const byStart = (a, b) => (a.start || '9999').localeCompare(b.start || '9999') || (a.end || '').localeCompare(b.end || '');
+  // Rows with "Timeline After" set to another row's key sit directly below that row
+  const pinAfter = (rows) => {
+    const pinned = rows.filter((r) => r.after && r.after !== r.id && rows.some((t) => t.id === r.after));
+    const out = rows.filter((r) => !pinned.includes(r));
+    pinned.forEach((r) => { const i = out.findIndex((t) => t.id === r.after); out.splice(i < 0 ? out.length : i + 1, 0, r); });
+    return out;
+  };
 
   let last = null;
   function redraw() { if (last) draw(last); }
@@ -826,7 +833,7 @@ dash.calc('status_counts', {
     const labelW = narrow ? Math.min(132, W * 0.4) : Math.min(270, W * 0.3);
     const rowH = narrow ? 24 : 26, headH = 24, top = 44, bottom = 8;
     const lines = [];
-    PHASES.forEach((p) => { const rows = inView.filter((r) => r.phase === p).sort(byStart); if (rows.length) { lines.push({head: p}); rows.forEach((r) => lines.push({r})); } });
+    PHASES.forEach((p) => { const rows = pinAfter(inView.filter((r) => r.phase === p).sort(byStart)); if (rows.length) { lines.push({head: p}); rows.forEach((r) => lines.push({r})); } });
     let y = top; lines.forEach((l) => { l.y = y; y += l.head ? headH : rowH; });
     const H = Math.max(y + bottom, 120);
     const x = d3.scaleUtc(dom, [labelW + 10, W - 10]);
